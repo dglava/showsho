@@ -40,6 +40,46 @@ def formatNumber(number):
     else:
         return str(number)
 
+def setSeason():
+    # gets the season number, used during adding or editing a show
+    print("Season number:")
+    # input validation
+    while True:
+        season = input(">")
+        try:
+            int(season)
+            break
+        except ValueError:
+            print("Invalid choice, must enter a number, try again.")
+    return int(season)
+
+def setDate():
+    # gets the premiere date, used during adding or editing a show
+    print("Season's premiere date in the YYYY-MM-DD format:")
+    # input validation
+    while True:
+        date = input(">")
+        try:
+            getDateObject(date)
+            break
+        except (ValueError, TypeError):
+            print("Invalid choice, enter it in the proper format.")
+    return date
+
+def setEpisodes():
+    # gets the number of episodes in the season,
+    # used during adding or editing a show
+    print("Number of episodes the season has:")
+    # input validation
+    while True:
+        episodes = input(">")
+        try:
+            int(episodes)
+            break
+        except ValueError:
+            print("Invalid choice, must enter a number, try again.")
+    return int(episodes)
+
 def printAiring(show):
     # prints shows which are currently airing
     info = "{}\nEpisode: S{}E{}".format(
@@ -144,6 +184,17 @@ def showShows(shows):
             printNotAiring(show)
         print()
 
+def addShow():
+    # returns a Show() object with the entered data
+
+    print("Show's name:")
+    title = input(">")
+    season = setSeason()
+    date = setDate()
+    episodes = setEpisodes()
+
+    return Show(title, season, date, episodes)
+
 def loadShows():
     # returns a list containing Show() objects
 
@@ -200,7 +251,7 @@ def main():
         if choice == "show":
             showShows(shows)
         elif choice == "add":
-            print("add")
+            shows.append(addShow())
         elif choice == "edit":
             print("edit")
         elif choice == "delete":
