@@ -33,17 +33,19 @@ def getDateString(date_object):
     else:
         return date_object
 
-def formatEpisode(episode):
-    # adds a leading zero to the episode if necessary
-    if len(str(episode)) == 1:
-        return "0{}".format(episode)
+def formatNumber(number):
+    # adds a leading zero to the episode/season if necessary
+    if len(str(number)) == 1:
+        return "0{}".format(number)
+    else:
+        return str(number)
 
 def printAiring(show):
     # prints shows which are currently airing
     info = "{}\nEpisode: S{}E{}".format(
         colorize(show.title, Color.L_GREEN),
-        show.season,
-        formatEpisode(show.latest_episode)
+        formatNumber(show.season),
+        formatNumber(show.latest_episode)
         )
     # adds a notification if a new episode is out
     if show.new_episode:
@@ -57,7 +59,7 @@ def printAiringSoon(show):
     # prints shows which have a season premier date set
     info = "{}\nSeason {} premiere on: {}".format(
         colorize(show.title, Color.GREEN),
-        show.season,
+        formatNumber(show.season),
         show.premiere.strftime("%a, %d. %b")
         )
     # warning if the number of episodes for the season is missing
@@ -69,8 +71,8 @@ def printEnded(show):
     # prints shows which have ended airing
     info = "{}\nLast episode: S{}E{}".format(
         colorize(show.title, Color.RED),
-        show.season,
-        formatEpisode(show.episodes)
+        formatNumber(show.season),
+        formatNumber(show.episodes)
         )
     print(info)
 
@@ -78,7 +80,7 @@ def printNotAiring(show):
     # prints shows which aren't airing and have no premiere date set
     info = "{}\nSeason {} premiere unknown".format(
         show.title,
-        show.season)
+        formatNumber(show.season))
     print(info)
 
 class Show:
@@ -197,6 +199,12 @@ def main():
 
         if choice == "show":
             showShows(shows)
+        elif choice == "add":
+            print("add")
+        elif choice == "edit":
+            print("edit")
+        elif choice == "delete":
+            print("delete")
         elif choice == "load":
             shows = loadShows()
         elif choice == "save":
