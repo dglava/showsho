@@ -190,6 +190,7 @@ def showShows(shows):
 
     # prints info about each show based on attributes; sorts by title
     for show in sorted(shows, key=lambda show: show.title):
+        print("--------------------------")
         if show.ended:
             printEnded(show)
         elif show.airing:
@@ -198,7 +199,7 @@ def showShows(shows):
             printAiringSoon(show)
         else:
             printNotAiring(show)
-        print()
+    print("--------------------------")
 
 def addShow():
     # returns a Show() object with the entered data
@@ -253,7 +254,7 @@ def deleteShow(shows):
                 shows.remove(show)
         print("Show deleted.")
 
-def loadShows():
+def loadShows(shows):
     # returns a list containing Show() objects
 
     path = input(">")
@@ -264,18 +265,18 @@ def loadShows():
         print("Shows loaded.")
     except FileNotFoundError:
         print("No such file: '{}'".format(path))
-        return []
+        return shows
 
     # creates a Show() object for each entry, appends it to the list
-    shows = []
+    new_shows = []
     for title, data in JSON_data.items():
-        shows.append(Show(
+        new_shows.append(Show(
             title,
             data[0],
             data[1],
             data[2])
             )
-    return shows
+    return new_shows
 
 def saveShows(shows):
     # formats Show() objects into JSON and saves it to a file
@@ -315,7 +316,7 @@ def main():
         elif choice == "delete":
             deleteShow(shows)
         elif choice == "load":
-            shows = loadShows()
+            shows = loadShows(shows)
         elif choice == "save":
             saveShows(shows)
         elif choice == "quit":
