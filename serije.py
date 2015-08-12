@@ -48,7 +48,7 @@ def printAiring(show):
     # adds a notification if a new episode is out
     if show.new_episode:
         info += " {}".format(colorize("New episode!", Color.L_BLUE))
-    # prints a warning if the number of episodes for the season is missing
+    # warning if the number of episodes for the season is missing
     if not show.episodes:
         info += "\n{}".format(colorize(WARNING, Color.L_RED))
     print(info)
@@ -60,6 +60,7 @@ def printAiringSoon(show):
         show.season,
         show.premiere.strftime("%a, %d. %b")
         )
+    # warning if the number of episodes for the season is missing
     if not show.episodes:
         info += "\n{}".format(colorize(WARNING, Color.L_RED))
     print(info)
