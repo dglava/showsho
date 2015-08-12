@@ -40,6 +40,12 @@ def formatNumber(number):
     else:
         return str(number)
 
+def setTitle():
+    # gets the show's title, used during adding or editing a show
+    print("Show's title:")
+    title = input(">")
+    return title
+
 def setSeason():
     # gets the season number, used during adding or editing a show
     print("Season number:")
@@ -176,7 +182,8 @@ class Show:
             self.new_episode = True
 
 def showShows(shows):
-    # TODO: fix proper display of show types
+    # prints all the shows out with color-coded information
+
     if len(shows) < 1:
         print("No shows added. Use 'add' to start keeping track.")
         return
@@ -196,13 +203,43 @@ def showShows(shows):
 def addShow():
     # returns a Show() object with the entered data
 
-    print("Show's name:")
-    title = input(">")
+    title = setTitle()
     season = setSeason()
     date = setDate()
     episodes = setEpisodes()
     print("Show successfully added.")
     return Show(title, season, date, episodes)
+
+def editShow(shows):
+    # edits a show
+    # TODO: maybe change this to not use deletion;
+    #       add a Show.update() method, and move everything from
+    #       Show().__init__ to it. Then call that method in here,
+    #       instead of deleting the Show() object and replacing it with
+    #       a new one.
+
+    print("Name of the show to edit:")
+    show_to_edit = input(">")
+
+    # TODO: find a better way to search for show and edit it,
+    #       without iterating twice through the show list
+    if show_to_edit not in [show.title for show in shows]:
+        print("Show not found.")
+        return shows
+
+    for show in shows:
+        if show.title == show_to_edit:
+            shows.remove(show)
+
+            title = setTitle()
+            season = setSeason()
+            date = setDate()
+            episodes = setEpisodes()
+
+            shows.append(Show(title, season, date, episodes))
+            print("Show successfully edited.")
+
+    return shows
 
 def loadShows():
     # returns a list containing Show() objects
@@ -262,7 +299,7 @@ def main():
         elif choice == "add":
             shows.append(addShow())
         elif choice == "edit":
-            print("edit")
+            editShow(shows)
         elif choice == "delete":
             print("delete")
         elif choice == "load":
