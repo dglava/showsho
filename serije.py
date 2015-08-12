@@ -225,7 +225,7 @@ def editShow(shows):
     #       without iterating twice through the show list
     if show_to_edit not in [show.title for show in shows]:
         print("Show not found.")
-        return shows
+        return
 
     for show in shows:
         if show.title == show_to_edit:
@@ -238,8 +238,6 @@ def editShow(shows):
 
             shows.append(Show(title, season, date, episodes))
             print("Show successfully edited.")
-
-    return shows
 
 def loadShows():
     # returns a list containing Show() objects
