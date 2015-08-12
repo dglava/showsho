@@ -55,29 +55,38 @@ def setSeason():
 
 def setDate():
     # gets the premiere date, used during adding or editing a show
-    print("Season's premiere date in the YYYY-MM-DD format:")
+    print("Season's premiere date in the YYYY-MM-DD format.")
+    print("Leave blank if unknown.")
     # input validation
     while True:
         date = input(">")
+        if date == "":
+            return None
+
         try:
             getDateObject(date)
             break
         except (ValueError, TypeError):
             print("Invalid choice, enter it in the proper format.")
+
     return date
 
 def setEpisodes():
     # gets the number of episodes in the season,
     # used during adding or editing a show
-    print("Number of episodes the season has:")
+    print("Number of episodes the season has. Leave blank if unknown.")
     # input validation
     while True:
         episodes = input(">")
+        if episodes == "":
+            return None
+
         try:
             int(episodes)
             break
         except ValueError:
             print("Invalid choice, must enter a number, try again.")
+
     return int(episodes)
 
 def printAiring(show):
@@ -192,7 +201,7 @@ def addShow():
     season = setSeason()
     date = setDate()
     episodes = setEpisodes()
-
+    print("Show successfully added.")
     return Show(title, season, date, episodes)
 
 def loadShows():
