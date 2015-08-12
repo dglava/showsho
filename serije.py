@@ -239,6 +239,20 @@ def editShow(shows):
             shows.append(Show(title, season, date, episodes))
             print("Show successfully edited.")
 
+def deleteShow(shows):
+    # removes a show
+
+    print("Name of the show to delete:")
+    show_to_delete = input(">")
+    if show_to_delete not in [show.title for show in shows]:
+        print("Show not found.")
+        return
+    else:
+        for show in shows:
+            if show.title == show_to_delete:
+                shows.remove(show)
+        print("Show deleted.")
+
 def loadShows():
     # returns a list containing Show() objects
 
@@ -299,7 +313,7 @@ def main():
         elif choice == "edit":
             editShow(shows)
         elif choice == "delete":
-            print("delete")
+            deleteShow(shows)
         elif choice == "load":
             shows = loadShows()
         elif choice == "save":
