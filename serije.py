@@ -4,8 +4,22 @@ import json
 
 TODAY = datetime.date.today()
 
-WARNING = """Unknown number of episodes. Please edit the show,
+WARNING = (
+"""Unknown number of episodes. Please edit the show,
 or else notifications about the show ending won't work."""
+)
+
+HELP = (
+"""show:\tprints the shows out with their information
+add:\tadds a new show to keep track of
+edit:\tedit an existing show
+delete:\tdelete a show
+load:\tload file containing shows
+save:\tsave shows to a file
+
+help:\tprint this help description
+quit:\tdestroy the universe..."""
+)
 
 class Color:
     GREEN = "\033[32m"
@@ -15,6 +29,8 @@ class Color:
     L_RED = "\033[1;31m"
 
 def colorize(text, color):
+    # TODO: doesn't work on Windows, add an if on_windows: check
+    #       return just the text if True
     return "{}{}\033[0m".format(color, text)
 
 def getDateObject(date_string):
@@ -348,8 +364,13 @@ def main():
             shows = loadShows(shows)
         elif choice == "save":
             saveShows(shows)
+        elif choice == "help":
+            print(HELP)
         elif choice == "quit":
             break
+        else:
+            print("Unknown command. Type 'help' for a list of commands")
+
         if choice != "quit":
             print()
 
