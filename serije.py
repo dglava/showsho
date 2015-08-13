@@ -122,6 +122,9 @@ def printAiring(show):
     # adds a notification if a new episode is out
     if show.new_episode:
         info += " {}".format(colorize("New episode!", Color.L_BLUE))
+    # adds a notification if it's the last episode of the season
+    if show.last_episode:
+        info += " {}".format(colorize("Last episode!", Color.L_RED))
     # warning if the number of episodes for the season is missing
     if not show.episodes:
         info += "\n{}".format(colorize(WARNING, Color.L_RED))
@@ -192,6 +195,7 @@ class Show:
         self.latest_episode = 0
         self.ended = False
         self.new_episode = False
+        self.last_episode = False
 
         if premiere:
             self.premiere = getDateObject(premiere)
@@ -201,6 +205,7 @@ class Show:
                 self.setNewEpisode()
                 if episodes:
                     self.setEnded()
+                    self.setLastEpisode()
 
     def setLatestEpisode(self):
         """Gets episode number based on the season's start date"""
@@ -223,6 +228,11 @@ class Show:
         if getDay(TODAY) == getDay(self.premiere):
             self.new_episode = True
 
+    def setLastEpisode(self):
+        """Checks if the latest episode is the last one"""
+        if self.latest_episode == self.episodes:
+            self.last_episode = True
+
 def showShows(shows):
     # prints all the shows out with color-coded information
 
@@ -241,7 +251,6 @@ def showShows(shows):
             printAiringSoon(show)
         else:
             printNotAiring(show)
-    print("--------------------------")
 
 #def downloadShows(show):
     ## downloads a torrent file for shows which have a new episode
@@ -300,6 +309,7 @@ def deleteShow(shows):
 def loadShows(shows):
     # returns a list containing Show() objects
 
+    print("File to load:")
     path = input(">")
     try:
         file_obj = open(path, "r")
@@ -333,6 +343,7 @@ def saveShows(shows):
             show.episodes
             ]
 
+    print("Save as:")
     path = input(">")
     try:
         file_obj = open(path, "w")
