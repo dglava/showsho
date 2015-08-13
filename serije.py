@@ -1,5 +1,6 @@
 import datetime
 import json
+#import urllib.request
 
 TODAY = datetime.date.today()
 
@@ -138,8 +139,33 @@ def printNotAiring(show):
         formatNumber(show.season))
     print(info)
 
+#def getTorrentData(show):
+    #source = "https://getstrike.net/api/v2/torrents/search/?phrase="
+    #search = "{}%20s{}e{}".format(
+        #show.title.replace(" ", "%20"),
+        #formatNumber(show.season),
+        #formatNumber(show.latest_episode)
+        #)
+    #url = "{}{}".format(source, search)
+
+    ## modified request header, because it won't work with python's UA
+    #header = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
+    #req = urllib.request.Request(url, header)
+    #site = urllib.request.urlopen(req).read()
+    ## removes the first 2 and last strings: b' and '
+    #JSON_data = str(site)[2:-1]
+
+    ## TODO: print first 5 torrents, pick one, return torrent title and hash/download link
+
+#def downloadTorrent(torrent):
+    #pass
+
 class Show:
     def __init__(self, title, season, premiere, episodes):
+        self.update(title, season, premiere, episodes)
+
+    def update(self, title, season, premiere, episodes):
+        """Sets and gets all the attributes; used during editing too"""
         self.title = title
         self.season = season
         self.premiere = premiere
@@ -201,6 +227,14 @@ def showShows(shows):
             printNotAiring(show)
     print("--------------------------")
 
+#def downloadShows(show):
+    ## downloads a torrent file for shows which have a new episode
+
+    #for show in shows:
+        #if show.new_episode:
+            #torrent = getTorrentData(show)
+            #downloadTorrent(torrent)
+
 def addShow():
     # returns a Show() object with the entered data
 
@@ -213,11 +247,6 @@ def addShow():
 
 def editShow(shows):
     # edits a show
-    # TODO: maybe change this to not use deletion;
-    #       add a Show.update() method, and move everything from
-    #       Show().__init__ to it. Then call that method in here,
-    #       instead of deleting the Show() object and replacing it with
-    #       a new one.
 
     print("Name of the show to edit:")
     show_to_edit = input(">")
@@ -230,14 +259,12 @@ def editShow(shows):
 
     for show in shows:
         if show.title == show_to_edit:
-            shows.remove(show)
-
             title = setTitle()
             season = setSeason()
             date = setDate()
             episodes = setEpisodes()
 
-            shows.append(Show(title, season, date, episodes))
+            show.update(title, season, date, episodes)
             print("Show successfully edited.")
 
 def deleteShow(shows):
@@ -309,6 +336,8 @@ def main():
 
         if choice == "show":
             showShows(shows)
+        #elif choice == "download":
+            #print("download")
         elif choice == "add":
             shows.append(addShow())
         elif choice == "edit":
@@ -321,6 +350,8 @@ def main():
             saveShows(shows)
         elif choice == "quit":
             break
+        if choice != "quit":
+            print()
 
 if __name__ == "__main__":
     main()
