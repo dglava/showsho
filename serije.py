@@ -1,8 +1,10 @@
 import datetime
 import json
-#import urllib.request
+import urllib.request
 
 TODAY = datetime.date.today()
+# used for urllib requests
+HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
 
 WARNING = (
 """Unknown number of episodes. Please edit the show,
@@ -154,43 +156,78 @@ def printNotAiring(show):
         formatNumber(show.season))
     print(info)
 
-#def getTorrents(show):
-    ## returns a list with a dict for the top 5 torrents of a show
-    #source = "https://getstrike.net/api/v2/torrents/search/?phrase="
-    #search = "{}%20s{}e{}".format(
-        #show.title.replace(" ", "%20"),
-        #formatNumber(show.season),
-        #formatNumber(show.latest_episode)
-        #)
-    #url = "{}{}".format(source, search)
+def getTorrents(show):
+    # returns a list with a dict for the top 5 torrents of a show
+    source = "https://getstrike.net/api/v2/torrents/search/?phrase="
+    search = "{}%20s{}e{}".format(
+        show.title.replace(" ", "%20"),
+        formatNumber(show.season),
+        formatNumber(show.latest_episode)
+        )
+    url = "{}{}".format(source, search)
 
-    ## modified request header, because it won't work with python's UA
-    #header = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
-    #req = urllib.request.Request(url, headers=header)
-    ## TODO: find out if it's possible to get JSON without converting
-    ##       it to a string first and then loading it
-    #site = urllib.request.urlopen(req).read()
-    ## removes the first 2 and last strings: b' and '
-    #JSON_string = str(site)[2:-1]
-    #JSON_data = json.loads(JSON_string)
+    # modified request header, because it won't work with python's UA
+    req = urllib.request.Request(url, headers=HEADER)
 
-    #return JSON_data["torrents"][:5]
+    try:
+        # TODO: find out if it's possible to get JSON without converting
+        #       it to a string first and then loading it
+        site = urllib.request.urlopen(req).read()
+        # removes the first 2 and last strings: b' and '
+        JSON_string = str(site)[2:-1]
+        JSON_data = json.loads(JSON_string)
 
-#def chooseTorrent(torrents):
-    ## returns a torrent link for download
-    #print("Download file:")
+        return JSON_data["torrents"][:5]
+    # thrown when no torrents are found
+    except urllib.error.HTTPError:
+        print("\nNo torrents found for show '{}'".format(show.title))
+        return None
 
-    #index = 0
-    #for torrent in torrents:
-        #print("[{}] seeds: {} {}".format(
-            #colorize(index, Color.L_GREEN),
-            #torrent["seeds"],
-            #torrent["torrent_title"])
-            #)
-    #choice = input(">")
+def chooseTorrent(torrents):
+    # returns a torrent's hash and title; used for downloading
 
-#def downloadTorrent(torrent):
-    #pass
+    # if no torrents are passed to the function;
+    # happens when no torrents are found with getTorrents()
+    if not torrents:
+        return None, None
+
+    print("Download file:")
+    index = 0
+    for torrent in torrents:
+        print("[{}] seeds:{}\t{}".format(
+            colorize(index, Color.L_GREEN),
+            torrent["seeds"],
+            torrent["torrent_title"])
+            )
+        index += 1
+    choice = validateNumber()
+
+    # TODO: maybe extend validateNumber() to check for range,
+    #       would help avoid this check
+    if choice in range(len(torrents)):
+        chosen_torr = torrents[choice]
+        return chosen_torr["torrent_hash"], chosen_torr["torrent_title"]
+    else:
+        print("Invalid choice.")
+        return None, None
+
+def downloadTorrent(torrent_hash, torrent_title):
+    # downloads and saves a torrent file
+
+    # if no torrent hash and title are passed to the function
+    # happens when no torrent is chosen with chooseTorrent()
+    if not (torrent_hash and torrent_title):
+        return
+
+    source = "https://getstrike.net/torrents/api/download/"
+    url = "{}{}.torrent".format(source,torrent_hash)
+
+    req = urllib.request.Request(url, headers=HEADER)
+    torrent_data = urllib.request.urlopen(req)
+    torrent_file = open("{}.torrent".format(torrent_title), "wb")
+    torrent_file.write(torrent_data.read())
+    torrent_file.close()
+    print("Torrent file downloaded.")
 
 class Show:
     def __init__(self, title, season, premiere, episodes):
@@ -265,14 +302,14 @@ def showShows(shows):
         else:
             printNotAiring(show)
 
-#def downloadShows(shows):
-    ## downloads a torrent file for shows which have a new episode
+def downloadShows(shows):
+    # downloads a torrent file for shows which have a new episode
 
-    #for show in shows:
-        #if show.new_episode:
-            #torrents = getTorrents(show)
-            #torrent = chooseTorrent(torrents)
-            #downloadTorrent(torrent)
+    for show in shows:
+        if show.new_episode:
+            torrents = getTorrents(show)
+            torrent_hash, torrent_title = chooseTorrent(torrents)
+            downloadTorrent(torrent_hash, torrent_title)
 
 def addShow():
     # returns a Show() object with the entered data
@@ -377,8 +414,8 @@ def main():
 
         if choice == "show":
             showShows(shows)
-        #elif choice == "download":
-            #downloadShows(shows)
+        elif choice == "download":
+            downloadShows(shows)
         elif choice == "add":
             shows.append(addShow())
         elif choice == "edit":
