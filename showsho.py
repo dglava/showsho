@@ -16,6 +16,7 @@ or else notifications about the show ending won't work."""
 
 HELP = (
 """show:\tprints the shows out with their information
+down:\tdownloads torrents for shows which have a new episode out
 add:\tadds a new show to keep track of
 edit:\tedit an existing show
 delete:\tdelete a show
@@ -419,7 +420,7 @@ def main():
 
         if choice == "show":
             showShows(shows)
-        elif choice == "download":
+        elif choice == "down":
             downloadShows(shows)
         elif choice == "add":
             shows.append(addShow())
