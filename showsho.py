@@ -99,14 +99,11 @@ def setDate():
         date = input(">")
         if date == "":
             return None
-
         try:
             getDateObject(date)
-            break
+            return date
         except (ValueError, TypeError):
             print("Invalid choice, enter it in the proper format.")
-
-    return date
 
 def setEpisodes():
     # gets the number of episodes in the season,
