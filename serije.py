@@ -57,6 +57,20 @@ def formatNumber(number):
     else:
         return str(number)
 
+def validateNumber(allow_none=False):
+    # returns a number (int) with input validation
+    # if allow_none is True, it can also return None if input is blank
+    while True:
+        choice = input(">")
+        if allow_none:
+            if choice == "":
+                return None
+            elif choice.isdigit():
+                return int(choice)
+        elif choice.isdigit():
+            return int(choice)
+        print("Invalid choice, must enter a number, try again.")
+
 def setTitle():
     # gets the show's title, used during adding or editing a show
     print("Show's title:")
@@ -66,15 +80,8 @@ def setTitle():
 def setSeason():
     # gets the season number, used during adding or editing a show
     print("Season number:")
-    # input validation
-    while True:
-        season = input(">")
-        try:
-            int(season)
-            break
-        except ValueError:
-            print("Invalid choice, must enter a number, try again.")
-    return int(season)
+    season = validateNumber()
+    return season
 
 def setDate():
     # gets the premiere date, used during adding or editing a show
@@ -98,19 +105,8 @@ def setEpisodes():
     # gets the number of episodes in the season,
     # used during adding or editing a show
     print("Number of episodes the season has. Leave blank if unknown.")
-    # input validation
-    while True:
-        episodes = input(">")
-        if episodes == "":
-            return None
-
-        try:
-            int(episodes)
-            break
-        except ValueError:
-            print("Invalid choice, must enter a number, try again.")
-
-    return int(episodes)
+    episodes = validateNumber(True)
+    return episodes
 
 def printAiring(show):
     # prints shows which are currently airing
@@ -158,7 +154,8 @@ def printNotAiring(show):
         formatNumber(show.season))
     print(info)
 
-#def getTorrentData(show):
+#def getTorrents(show):
+    ## returns a list with a dict for the top 5 torrents of a show
     #source = "https://getstrike.net/api/v2/torrents/search/?phrase="
     #search = "{}%20s{}e{}".format(
         #show.title.replace(" ", "%20"),
@@ -169,12 +166,28 @@ def printNotAiring(show):
 
     ## modified request header, because it won't work with python's UA
     #header = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
-    #req = urllib.request.Request(url, header)
+    #req = urllib.request.Request(url, headers=header)
+    ## TODO: find out if it's possible to get JSON without converting
+    ##       it to a string first and then loading it
     #site = urllib.request.urlopen(req).read()
     ## removes the first 2 and last strings: b' and '
-    #JSON_data = str(site)[2:-1]
+    #JSON_string = str(site)[2:-1]
+    #JSON_data = json.loads(JSON_string)
 
-    ## TODO: print first 5 torrents, pick one, return torrent title and hash/download link
+    #return JSON_data["torrents"][:5]
+
+#def chooseTorrent(torrents):
+    ## returns a torrent link for download
+    #print("Download file:")
+
+    #index = 0
+    #for torrent in torrents:
+        #print("[{}] seeds: {} {}".format(
+            #colorize(index, Color.L_GREEN),
+            #torrent["seeds"],
+            #torrent["torrent_title"])
+            #)
+    #choice = input(">")
 
 #def downloadTorrent(torrent):
     #pass
@@ -252,12 +265,13 @@ def showShows(shows):
         else:
             printNotAiring(show)
 
-#def downloadShows(show):
+#def downloadShows(shows):
     ## downloads a torrent file for shows which have a new episode
 
     #for show in shows:
         #if show.new_episode:
-            #torrent = getTorrentData(show)
+            #torrents = getTorrents(show)
+            #torrent = chooseTorrent(torrents)
             #downloadTorrent(torrent)
 
 def addShow():
@@ -364,7 +378,7 @@ def main():
         if choice == "show":
             showShows(shows)
         #elif choice == "download":
-            #print("download")
+            #downloadShows(shows)
         elif choice == "add":
             shows.append(addShow())
         elif choice == "edit":
