@@ -113,50 +113,53 @@ def setEpisodes():
     return episodes
 
 def printAiring(show):
-    # prints shows which are currently airing
-    info = "{}\nEpisode: S{}E{}".format(
-        colorize(show.title, Color.L_GREEN),
-        formatNumber(show.season),
-        formatNumber(show.latest_episode)
-        )
-    # adds a notification if a new episode is out
-    if show.new_episode:
-        info += " {}".format(colorize("New episode!", Color.L_BLUE))
-    # adds a notification if it's the last episode of the season
+    #prints shows which are currently airing
+    line1 = colorize(show.title, Color.L_GREEN)
+    line2 = "S{}E{} | {}".format(
+        show.season,
+        show.latest_episode,
+        getDay(show.premiere))
+
     if show.last_episode:
-        info += " {}".format(colorize("Last episode!", Color.L_RED))
+        line1 += " {}".format(colorize("Last episode!", Color.L_RED))
+    if show.new_episode:
+        line2 += " {}".format(colorize("New episode!", Color.L_BLUE))
     # warning if the number of episodes for the season is missing
     if not show.episodes:
-        info += "\n{}".format(colorize(WARNING, Color.L_RED))
-    print(info)
+        line2 += "\n{}".format(colorize(WARNING, Color.L_RED))
+
+    print(line1)
+    print(line2)
 
 def printAiringSoon(show):
     # prints shows which have a season premier date set
-    info = "{}\nSeason {} premiere on: {}".format(
-        colorize(show.title, Color.GREEN),
+    line1 = colorize(show.title, Color.GREEN)
+    line2 = "Season {} premiere on: {}".format(
         formatNumber(show.season),
         show.premiere.strftime("%a, %d. %b")
         )
     # warning if the number of episodes for the season is missing
     if not show.episodes:
-        info += "\n{}".format(colorize(WARNING, Color.L_RED))
-    print(info)
+        line2 += "\n{}".format(colorize(WARNING, Color.L_RED))
+
+    print(line1)
+    print(line2)
 
 def printEnded(show):
     # prints shows which have ended airing
-    info = "{}\nLast episode: S{}E{}".format(
+    line = "{}\nLast episode: S{}E{}".format(
         colorize(show.title, Color.RED),
         formatNumber(show.season),
         formatNumber(show.episodes)
         )
-    print(info)
+    print(line)
 
 def printNotAiring(show):
     # prints shows which aren't airing and have no premiere date set
-    info = "{}\nSeason {} premiere unknown".format(
+    line = "{}\nSeason {} premiere unknown".format(
         show.title,
         formatNumber(show.season))
-    print(info)
+    print(line)
 
 def getTorrents(show):
     # returns a list with a dict for the top 5 torrents of a show
