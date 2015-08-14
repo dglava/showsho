@@ -1,10 +1,13 @@
 import datetime
 import json
 import urllib.request
+import os
 
 TODAY = datetime.date.today()
 # used for urllib requests
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
+# used to disable colored text on Windows
+OS = os.name
 
 WARNING = (
 """Unknown number of episodes. Please edit the show,
@@ -31,9 +34,11 @@ class Color:
     L_RED = "\033[1;31m"
 
 def colorize(text, color):
-    # TODO: doesn't work on Windows, add an if on_windows: check
-    #       return just the text if True
-    return "{}{}\033[0m".format(color, text)
+    # doesn't output colored text on Windows(tm)(c)
+    if OS == "nt":
+        return text
+    else:
+        return "{}{}\033[0m".format(color, text)
 
 def getDateObject(date_string):
     # returns a date object for the given date string; format YYYY-MM-DD
