@@ -117,8 +117,8 @@ def printAiring(show):
     #prints shows which are currently airing
     line1 = colorize(show.title, Color.L_GREEN)
     line2 = "S{}E{} | {}".format(
-        show.season,
-        show.latest_episode,
+        formatNumber(show.season),
+        formatNumber(show.latest_episode),
         getDay(show.premiere))
 
     if show.last_episode:
