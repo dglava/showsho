@@ -246,5 +246,4 @@ def main(show_file):
         else:
             print("Unknown command. Type 'help' for a list of commands")
 
-        if choice != "quit":
-            print()
+        print()
