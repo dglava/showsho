@@ -317,11 +317,23 @@ def showShows(shows):
 def downloadShows(shows):
     # downloads a torrent file for shows which have a new episode
 
+    if len(shows) < 1:
+        print("No shows added. Use 'add' to start keeping track.")
+        return
+
+    # used to display a message if no shows are available for download
+    no_shows_to_download = True
+
     for show in shows:
         if show.new_episode:
+            no_shows_to_download = False
+
             torrents = getTorrents(show)
             torrent_hash, torrent_title = chooseTorrent(torrents)
             downloadTorrent(torrent_hash, torrent_title)
+
+    if no_shows_to_download:
+        print("No new episodes out. Nothing to download.")
 
 def addShow():
     # returns a Show() object with the entered data
