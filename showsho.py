@@ -2,6 +2,7 @@ import datetime
 import json
 import urllib.request
 import os
+import argparse
 
 TODAY = datetime.date.today()
 # used for urllib requests
@@ -363,11 +364,16 @@ def deleteShow(shows):
                 shows.remove(show)
         print("Show deleted.")
 
-def loadShows(shows):
+def loadShows(old_shows, arg_path=None):
     # returns a list containing Show() objects
 
-    print("File to load:")
-    path = input(">")
+    # used only on startup if a filename was passed as an optional arg
+    if arg_path:
+        path = arg_path
+    else:
+        print("File to load:")
+        path = input(">")
+
     try:
         file_obj = open(path, "r")
         JSON_data = json.load(file_obj)
@@ -375,7 +381,7 @@ def loadShows(shows):
         print("Shows loaded.")
     except FileNotFoundError:
         print("No such file: '{}'".format(path))
-        return shows
+        return old_shows
 
     # creates a Show() object for each entry, appends it to the list
     new_shows = []
@@ -412,8 +418,10 @@ def saveShows(shows):
     except FileNotFoundError:
         print("No such file or directory: '{}'".format(path))
 
-def main():
+def main(show_file):
     shows = []
+    if show_file:
+        shows = loadShows(shows, show_file)
 
     while True:
         choice = input(">")
@@ -443,4 +451,8 @@ def main():
             print()
 
 if __name__ == "__main__":
-    main()
+    pars = argparse.ArgumentParser()
+    pars.add_argument("-f", "--file", help="loadfile with shows on startup")
+    args = pars.parse_args()
+
+    main(args.file)
