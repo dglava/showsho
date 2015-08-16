@@ -10,7 +10,7 @@ Or include a file with the *-f* flag:
 `$ showsho -f /path/to/shows.json`  
 
 Now you can list all the shows with the `show` command:  
-![](http://s3.postimg.org/go5iulvw3/2015_08_16_142044_644x411_scrot.png)
+![](http://s3.postimg.org/go5iulvw3/2015_08_16_142044_644x411_scrot.png)  
 The list is color coded for convenience.  
 - Shows that are airing are bright green  
 - Shows with a known premiere date are green  
@@ -30,7 +30,7 @@ For a list of all the commands type `help`. To quit use `quit`.
 They're JSON laid out as shown below.  
 ```
 {
-"show name": [season, "date", episodes],
+"show name": [season, "date", episodes]
 }
 ```
 `show name`: string with the show's name  
