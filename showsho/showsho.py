@@ -44,7 +44,7 @@ class Show:
         self.update(title, season, premiere, episodes)
 
     def update(self, title, season, premiere, episodes):
-        """Sets and gets all the attributes; used during editing too"""
+        """Sets all the attributes; used during editing too"""
         self.title = title
         self.season = season
         self.premiere = premiere
@@ -149,8 +149,8 @@ def editShow(shows):
     print("Name of the show to edit:")
     show_to_edit = input(">")
 
-    # TODO: find a better way to search for show and edit it,
-    #       without iterating twice through the show list
+    # TODO: find a better way to search for shows, without iterating
+    #       twice through the show list, here and below
     if show_to_edit not in [show.title for show in shows]:
         print("Show not found.")
         return
