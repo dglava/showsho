@@ -28,6 +28,9 @@ help:\tprint this help description
 quit:\tdestroy the universe..."""
 )
 
+# TODO: maybe separate this into a new file?
+########## BEGIN UTILITY FUNCTIONS ##########
+
 class Color:
     GREEN = "\033[32m"
     RED = "\033[31m"
@@ -235,6 +238,8 @@ def downloadTorrent(torrent_hash, torrent_title):
     torrent_file.write(torrent_data.read())
     torrent_file.close()
     print("Torrent file downloaded.")
+
+########## END UTILITY FUNCTIONS ##########
 
 class Show:
     def __init__(self, title, season, premiere, episodes):
