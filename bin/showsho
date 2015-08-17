@@ -18,7 +18,7 @@
 
 import argparse
 
-from showsho import showsho
+import showsho
 
 pars = argparse.ArgumentParser()
 pars.add_argument("-f", "--file", help="loadfile with shows on startup")
