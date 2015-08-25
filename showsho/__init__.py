@@ -87,29 +87,28 @@ def showShows(shows):
     for show in sorted(shows, key=lambda show: show.title):
         print("------------")
         print(utils.showInfo(show))
+    print("------------")
 
-#def downloadShows(shows):
-    ## downloads a torrent file for shows which have a new episode
-    #if len(shows) < 1:
-        #print("No shows added. Use 'add' to start keeping track.")
-        #return
+def downloadShows(shows):
+    # downloads a torrent file for shows which have a new episode
+    if len(shows) < 1:
+        return
 
-    ## used to display a message if no shows are available for download
-    #no_shows_to_download = True
+    # used to display a message if no shows are available for download
+    no_shows_to_download = True
 
-    #for show in shows:
-        ## TODO: replace show.ended with show.status
-        #if show.new_episode and not show.ended:
-            #no_shows_to_download = False
+    for show in shows:
+        if show.status == "airing_new":
+            no_shows_to_download = False
 
-            #torrents = utils.getTorrents(show)
-            #torrent_hash, torrent_title = utils.chooseTorrent(torrents)
-            #utils.downloadTorrent(torrent_hash, torrent_title)
+            torrents = utils.getTorrents(show)
+            torrent_hash, torrent_title = utils.chooseTorrent(torrents)
+            utils.downloadTorrent(torrent_hash, torrent_title)
 
-    #if no_shows_to_download:
-        #print("No new episodes out. Nothing to download.")
+    if no_shows_to_download:
+        print("No new episodes out. Nothing to download.")
 
-def main(show_file_path):
+def main(show_file_path, download_set):
     show_file = open(show_file_path, "r")
     JSON_data = json.load(show_file)
 
@@ -124,4 +123,8 @@ def main(show_file_path):
             print("Error in the show file; check show: {}".format(title))
             sys.exit(1)
 
+    # displays all the shows
     showShows(shows)
+    # if the download flag was set, downloads new episodes
+    if download_set:
+        downloadShows(shows)

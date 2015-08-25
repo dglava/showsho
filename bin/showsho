@@ -21,7 +21,20 @@ import argparse
 import showsho
 
 pars = argparse.ArgumentParser()
-pars.add_argument("shows", help="JSON file containing the shows")
+
+pars.add_argument(
+    "shows",
+    help="JSON file containing the shows"
+    )
+pars.add_argument(
+    "-d", "--download",
+    action="store_true",
+    help="Download new episodes"
+    )
+
 args = pars.parse_args()
 
-showsho.main(args.shows)
+try:
+    showsho.main(args.shows, args.download)
+except KeyboardInterrupt:
+    print()
