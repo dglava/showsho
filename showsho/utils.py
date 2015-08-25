@@ -131,7 +131,7 @@ def showInfo(show):
         info = "{}\nLast episode: S{}E{}".format(
             colorize(show.title, Color.RED),
             formatNumber(show.season),
-            formatNumber(show.current_episode),
+            formatNumber(show.episodes),
             )
 
     elif show.status == "soon":
