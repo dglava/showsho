@@ -33,6 +33,8 @@ class Show:
         if self.premiere and self.episodes:
             self.premiere = utils.getDateObject(premiere)
             self.getLastEpisodeDate()
+            # TODO: prevent getting the current episode if the show
+            #       stopped airing
             self.getCurrentEpisode()
             self.getStatus()
         else:
@@ -109,6 +111,8 @@ def downloadShows(shows):
         print("No new episodes out. Nothing to download.")
 
 def main(show_file_path, download_set):
+    # loads JSON data from file, creates a list with Show() objects,
+    # displays and optionally downloads the shows
     show_file = open(show_file_path, "r")
     JSON_data = json.load(show_file)
 
