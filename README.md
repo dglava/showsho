@@ -5,10 +5,10 @@ An easy and simple way to keep track of your favourite TV shows.
 Run `python setup.py`
 
 #### How to use
-To display the shows:
-`$ showsho shows.json`
-To download the latest episodes use the `-d` flag:
-`$ showsho -d shows.json`
+To display the shows:  
+`$ showsho shows.json`  
+To download the latest episodes use the `-d` flag:  
+`$ showsho -d shows.json`  
 
 The list is color coded for convenience.
 - Shows that are airing are bright green
@@ -17,20 +17,19 @@ The list is color coded for convenience.
 - Shows with unknown premiere dates are neutral
 
 #### Show file layout
-They're JSON laid out as shown below.
+They're JSON laid out as shown below.  
 ```
 {
 "show name": [season, "date", episodes]
 }
 ```
-`show name`: string with the show's name
-`season`: integer with the show's current season
-`date`: string with the date of the show's premiere in YYYY-MM-DD format. Can be null if unknown.
-`episodes`: integer with the number of episodes the season has. Can be null if unknown, but only if `date` is also null. If you set this to null while date has a proper value, you'll get an error while trying to load your file.
+`show name`: string with the show's name  
+`season`: integer with the show's current season  
+`date`: string with the date of the show's premiere in YYYY-MM-DD format. Can be null if unknown.  
+`episodes`: integer with the number of episodes the season has. Can be null if unknown, but only if `date` is also null. If you set this to null while date has a proper value, you'll get an error while trying to load your file.  
 
 
-Example file:
-
+Example file:  
 ```
 {
 "True Detective": [2, "2015-06-22", 8],
