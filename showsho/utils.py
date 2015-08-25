@@ -142,7 +142,7 @@ def showInfo(show):
             )
 
     elif show.status == "unknown":
-        info = "{}\nUnknown season {} premiere date".format(
+        info = "{}\nSeason {} unknown premiere date".format(
             show.title,
             show.season
             )

@@ -113,8 +113,15 @@ def downloadShows(shows):
 def main(show_file_path, download_set):
     # loads JSON data from file, creates a list with Show() objects,
     # displays and optionally downloads the shows
-    show_file = open(show_file_path, "r")
-    JSON_data = json.load(show_file)
+    try:
+        show_file = open(show_file_path, "r")
+        JSON_data = json.load(show_file)
+    except FileNotFoundError:
+        print("No such file: {}".format(show_file_path))
+        sys.exit(2)
+    except ValueError:
+        print("Bad JSON file. Check the formatting and try again.")
+        sys.exit(2)
 
     shows = []
     for title, data in JSON_data.items():
@@ -125,7 +132,7 @@ def main(show_file_path, download_set):
             shows.append(Show(title, data[0], data[1], data[2]))
         else:
             print("Error in the show file; check show: {}".format(title))
-            sys.exit(1)
+            sys.exit(2)
 
     # displays all the shows
     showShows(shows)
