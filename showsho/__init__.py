@@ -100,7 +100,7 @@ def downloadShows(shows):
     no_shows_to_download = True
 
     for show in shows:
-        if show.status == "airing_new":
+        if show.status == "airing_new" or show.status == "airing_last":
             no_shows_to_download = False
 
             torrents = utils.getTorrents(show)
