@@ -21,7 +21,7 @@ import argparse
 import showsho
 
 pars = argparse.ArgumentParser()
-pars.add_argument("-f", "--file", help="loadfile with shows on startup")
+pars.add_argument("shows", help="JSON file containing the shows")
 args = pars.parse_args()
 
-showsho.main(args.file)
+showsho.main(args.shows)

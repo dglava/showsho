@@ -16,250 +16,112 @@
 
 import datetime
 import json
+import sys
 
 from showsho import utils
 
 TODAY = datetime.date.today()
 
-WARNING = (
-"""Unknown number of episodes. Please edit the show,
-or else notifications about the show ending won't work."""
-)
-
-HELP = (
-"""show:\tprints the shows out with their information
-down:\tdownloads torrents for shows which have a new episode out
-add:\tadds a new show to keep track of
-edit:\tedit an existing show
-delete:\tdelete a show
-load:\tload file containing shows
-save:\tsave shows to a file
-
-help:\tprint this help description
-quit:\tdestroy the universe..."""
-)
-
 class Show:
+    """Show object containing a show's info"""
     def __init__(self, title, season, premiere, episodes):
-        self.update(title, season, premiere, episodes)
-
-    def update(self, title, season, premiere, episodes):
-        """Sets all the attributes; used during editing too"""
         self.title = title
         self.season = season
         self.premiere = premiere
         self.episodes = episodes
 
-        # default fallback values, might get overwritten by methods
-        self.airing = False
-        self.latest_episode = 0
-        self.ended = False
-        self.new_episode = False
-        self.last_episode = False
-
-        if premiere:
+        if self.premiere and self.episodes:
             self.premiere = utils.getDateObject(premiere)
-            self.setAiring()
-            if self.airing:
-                self.setLatestEpisode()
-                self.setNewEpisode()
-                if episodes:
-                    self.setEnded()
-                    self.setLastEpisode()
+            self.getLastEpisodeDate()
+            self.getCurrentEpisode()
+            self.getStatus()
+        else:
+            self.status = "unknown"
 
-    def setLatestEpisode(self):
-        """Gets episode number based on the season's start date"""
+    def getLastEpisodeDate(self):
+        """Gets the airing date of the season's last episode"""
+        # premiere date + number of weeks/episodes the season has;
+        # need to subtract 1 from the episodes number, because it counts
+        # from the premiere up and which is already taken into account
+        self.last_episode_date = (
+            self.premiere + datetime.timedelta(weeks=self.episodes - 1)
+            )
+
+    def getCurrentEpisode(self):
+        """Calculates the current/latest episode of a show"""
+        # number of days since the premiere
         difference = TODAY - self.premiere
-        # days since premier // 7 = weeks = episodes passed;
-        # adds 1 because episodes are indexed from 1 and not 0
-        self.latest_episode = ((difference.days // 7) + 1)
+        # days // 7 days = weeks (episodes) passed,
+        # adding 1 because episodes are indexed from 1, not 0
+        self.current_episode = ((difference.days // 7) + 1)
 
-    def setAiring(self):
-        """Checks if the show is currently airing"""
-        if self.premiere <= TODAY:
-            self.airing = True
+    def getStatus(self):
+        """Sets attributes based on a shows current status"""
+        # for shows currently on air
+        if self.premiere <= TODAY <= self.last_episode_date:
+            # if a a show's last episode is on today
+            if self.last_episode_date == TODAY:
+                self.status = "airing_last"
+            # if there's a new episode out today
+            elif utils.getDay(TODAY) == utils.getDay(self.premiere):
+                self.status = "airing_new"
+            # otherwise it's just airing
+            else:
+                self.status = "airing"
 
-    def setEnded(self):
-        if self.latest_episode > self.episodes:
-            self.ended = True
+        # if a show has ended
+        elif self.last_episode_date < TODAY:
+            self.status = "ended"
 
-    def setNewEpisode(self):
-        """Checks if a new episode is out today"""
-        if utils.getDay(TODAY) == utils.getDay(self.premiere):
-            self.new_episode = True
-
-    def setLastEpisode(self):
-        """Checks if the latest episode is the last one"""
-        if self.latest_episode == self.episodes:
-            self.last_episode = True
+        # if a show has a known premiere date
+        elif self.premiere > TODAY:
+            self.status = "soon"
 
 def showShows(shows):
     # prints all the shows out with color-coded information
-
     if len(shows) < 1:
-        print("No shows added. Use 'add' to start keeping track.")
+        print("File empty, add some shows to it!")
         return
 
     # prints info about each show based on attributes; sorts by title
     for show in sorted(shows, key=lambda show: show.title):
-        print("--------------------------")
-        if show.ended:
-            utils.printEnded(show)
-        elif show.airing:
-            utils.printAiring(show)
-        elif show.premiere:
-            utils.printAiringSoon(show)
-        else:
-            utils.printNotAiring(show)
+        print("------------")
+        print(utils.showInfo(show))
 
-def downloadShows(shows):
-    # downloads a torrent file for shows which have a new episode
+#def downloadShows(shows):
+    ## downloads a torrent file for shows which have a new episode
+    #if len(shows) < 1:
+        #print("No shows added. Use 'add' to start keeping track.")
+        #return
 
-    if len(shows) < 1:
-        print("No shows added. Use 'add' to start keeping track.")
-        return
+    ## used to display a message if no shows are available for download
+    #no_shows_to_download = True
 
-    # used to display a message if no shows are available for download
-    no_shows_to_download = True
+    #for show in shows:
+        ## TODO: replace show.ended with show.status
+        #if show.new_episode and not show.ended:
+            #no_shows_to_download = False
 
-    for show in shows:
-        if show.new_episode and not show.ended:
-            no_shows_to_download = False
+            #torrents = utils.getTorrents(show)
+            #torrent_hash, torrent_title = utils.chooseTorrent(torrents)
+            #utils.downloadTorrent(torrent_hash, torrent_title)
 
-            torrents = utils.getTorrents(show)
-            torrent_hash, torrent_title = utils.chooseTorrent(torrents)
-            utils.downloadTorrent(torrent_hash, torrent_title)
+    #if no_shows_to_download:
+        #print("No new episodes out. Nothing to download.")
 
-    if no_shows_to_download:
-        print("No new episodes out. Nothing to download.")
+def main(show_file_path):
+    show_file = open(show_file_path, "r")
+    JSON_data = json.load(show_file)
 
-def addShow():
-    # returns a Show() object with the entered data
-
-    title = utils.setTitle()
-    season = utils.setSeason()
-    date = utils.setDate()
-    episodes = utils.setEpisodes()
-    print("Show successfully added.")
-    return Show(title, season, date, episodes)
-
-def editShow(shows):
-    # edits a show
-
-    print("Name of the show to edit:")
-    show_to_edit = input(">")
-
-    # TODO: find a better way to search for shows, without iterating
-    #       twice through the show list, here and below
-    if show_to_edit not in [show.title for show in shows]:
-        print("Show not found.")
-        return
-
-    for show in shows:
-        if show.title == show_to_edit:
-            title = utils.setTitle()
-            season = utils.setSeason()
-            date = utils.setDate()
-            episodes = utils.setEpisodes()
-
-            show.update(title, season, date, episodes)
-            print("Show successfully edited.")
-
-def deleteShow(shows):
-    # removes a show
-
-    print("Name of the show to delete:")
-    show_to_delete = input(">")
-    if show_to_delete not in [show.title for show in shows]:
-        print("Show not found.")
-        return
-    else:
-        for show in shows:
-            if show.title == show_to_delete:
-                shows.remove(show)
-        print("Show deleted.")
-
-def loadShows(old_shows, arg_path=None):
-    # returns a list containing Show() objects
-
-    # used only on startup if a filename was passed as an optional arg
-    if arg_path:
-        path = arg_path
-    else:
-        print("File to load:")
-        path = input(">")
-
-    try:
-        file_obj = open(path, "r")
-        JSON_data = json.load(file_obj)
-        file_obj.close()
-        print("Shows loaded.")
-    except FileNotFoundError:
-        print("No such file: '{}'".format(path))
-        return old_shows
-
-    # creates a Show() object for each entry, appends it to the list
-    new_shows = []
-    for title, data in JSON_data.items():
-        new_shows.append(Show(
-            title,
-            data[0],
-            data[1],
-            data[2])
-            )
-    return new_shows
-
-def saveShows(shows):
-    # formats Show() objects into JSON and saves it to a file
-
-    # converts a Show() object to an appropriate dictionary
-    JSON_data = {}
-    for show in shows:
-        JSON_data[show.title] = [
-            show.season,
-            utils.getDateString(show.premiere),
-            show.episodes
-            ]
-
-    print("Save as:")
-    path = input(">")
-    try:
-        file_obj = open(path, "w")
-        json.dump(JSON_data, file_obj)
-        file_obj.close()
-        print("Shows saved!")
-    except PermissionError:
-        print("Can't save, permission denied: '{}'".format(path))
-    except FileNotFoundError:
-        print("No such file or directory: '{}'".format(path))
-
-def main(show_file):
     shows = []
-    if show_file:
-        shows = loadShows(shows, show_file)
-
-    while True:
-        choice = input(">")
-
-        if choice == "show":
-            showShows(shows)
-        elif choice == "down":
-            downloadShows(shows)
-        elif choice == "add":
-            shows.append(addShow())
-        elif choice == "edit":
-            editShow(shows)
-        elif choice == "delete":
-            deleteShow(shows)
-        elif choice == "load":
-            shows = loadShows(shows)
-        elif choice == "save":
-            saveShows(shows)
-        elif choice == "help":
-            print(HELP)
-        elif choice == "quit":
-            break
+    for title, data in JSON_data.items():
+        # makes sure that the JSON data is valid
+        if utils.verifyData(data[0], data[1], data[2]):
+            # if it is, creates a Show() object for each show and
+            # appends it to the shows list
+            shows.append(Show(title, data[0], data[1], data[2]))
         else:
-            print("Unknown command. Type 'help' for a list of commands")
+            print("Error in the show file; check show: {}".format(title))
+            sys.exit(1)
 
-        print()
+    showShows(shows)
