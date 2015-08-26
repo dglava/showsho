@@ -7,8 +7,10 @@ Run `python setup.py`
 #### How to use
 To display the shows:  
 `$ showsho shows.json`  
-To download the latest episodes use the `-d` flag:  
+To download the latest episodes use the `-d` or `--download` flag:  
 `$ showsho -d shows.json`  
+To delay the airing dates for a couple of days, use the `-p` or `--delay` flag. See **Notes** for more info.
+`$ showsho -p 1 shows.json`
 
 The list is color coded for convenience.
 - Shows that are airing are bright green
@@ -42,5 +44,5 @@ Example file:
 ```
 
 #### Notes
-- Depending on your timezone, it is probably recommended to add an additional day to a show's premiere/airing date. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after.
+- Depending on your timezone, it is probably recommended to add an additional day to the show's premiere/airing dates with the `-d` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
 - **Remember:** While downloading .torrent files (or using the bittorrent protocol for downloads) isn't illegal by itself, you shouldn't download unauthorized copies of media.

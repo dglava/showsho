@@ -23,6 +23,9 @@ from showsho import utils
 TODAY = datetime.date.today()
 
 class Show:
+    # used to adjust the airing dates for different timezones
+    delay = datetime.timedelta(days=0)
+
     """Show object containing a show's info"""
     def __init__(self, title, season, premiere, episodes):
         self.title = title
@@ -31,12 +34,11 @@ class Show:
         self.episodes = episodes
 
         if self.premiere and self.episodes:
-            self.premiere = utils.getDateObject(premiere)
+            self.premiere = utils.getDateObject(premiere) + Show.delay
             self.getLastEpisodeDate()
-            # TODO: prevent getting the current episode if the show
-            #       stopped airing
-            self.getCurrentEpisode()
             self.getStatus()
+            if self.status.startswith("airing"):
+                self.getCurrentEpisode()
         else:
             self.status = "unknown"
 
@@ -58,24 +60,18 @@ class Show:
         self.current_episode = ((difference.days // 7) + 1)
 
     def getStatus(self):
-        """Sets attributes based on a shows current status"""
-        # for shows currently on air
+        """Sets the show's status: if it's airing, ended, etc"""
         if self.premiere <= TODAY <= self.last_episode_date:
-            # if a a show's last episode is on today
             if self.last_episode_date == TODAY:
                 self.status = "airing_last"
-            # if there's a new episode out today
             elif utils.getDay(TODAY) == utils.getDay(self.premiere):
                 self.status = "airing_new"
-            # otherwise it's just airing
             else:
                 self.status = "airing"
 
-        # if a show has ended
         elif self.last_episode_date < TODAY:
             self.status = "ended"
 
-        # if a show has a known premiere date
         elif self.premiere > TODAY:
             self.status = "soon"
 
@@ -110,14 +106,19 @@ def downloadShows(shows):
     if no_shows_to_download:
         print("No new episodes out. Nothing to download.")
 
-def main(show_file_path, download_set):
+def main(show_file_path, download_set, delay):
     # loads JSON data from file, creates a list with Show() objects,
     # displays and optionally downloads the shows
+
+    # adjusts the airing date for shows if specified
+    if delay:
+        Show.delay = datetime.timedelta(days=delay)
+
     try:
         show_file = open(show_file_path, "r")
         JSON_data = json.load(show_file)
     except FileNotFoundError:
-        print("No such file: {}".format(show_file_path))
+        print("No such file: '{}'".format(show_file_path))
         sys.exit(2)
     except ValueError:
         print("Bad JSON file. Check the formatting and try again.")
@@ -131,7 +132,7 @@ def main(show_file_path, download_set):
             # appends it to the shows list
             shows.append(Show(title, data[0], data[1], data[2]))
         else:
-            print("Error in the show file; check show: {}".format(title))
+            print("Error in the show file; check show: '{}'".format(title))
             sys.exit(2)
 
     # displays all the shows

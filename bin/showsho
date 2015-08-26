@@ -21,9 +21,8 @@ import argparse
 import showsho
 
 pars = argparse.ArgumentParser()
-
 pars.add_argument(
-    "shows",
+    "FILE",
     help="JSON file containing the shows"
     )
 pars.add_argument(
@@ -31,10 +30,14 @@ pars.add_argument(
     action="store_true",
     help="Download new episodes"
     )
-
+pars.add_argument("-p", "--delay",
+    type=int,
+    metavar="DAYS",
+    help="Number of days to delay the airing dates"
+    )
 args = pars.parse_args()
 
 try:
-    showsho.main(args.shows, args.download)
+    showsho.main(args.FILE, args.download, args.delay)
 except KeyboardInterrupt:
     print()
