@@ -9,7 +9,7 @@ To display the shows:
 `$ showsho shows.json`  
 To download the latest episodes use the `-d` or `--download` flag:  
 `$ showsho -d shows.json`  
-To delay the airing dates for a couple of days, use the `-p` or `--delay` flag. See **Notes** for more info.
+To delay the airing dates for a couple of days, use the `-p` or `--delay` flag. See **Notes** for more info.  
 `$ showsho -p 1 shows.json`
 
 The list is color coded for convenience.
