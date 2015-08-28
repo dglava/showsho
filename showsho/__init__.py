@@ -100,8 +100,15 @@ def downloadShows(shows):
             no_shows_to_download = False
 
             torrents = utils.getTorrents(show)
-            torrent_hash, torrent_title = utils.chooseTorrent(torrents)
-            utils.downloadTorrent(torrent_hash, torrent_title)
+            if torrents:
+                torrent_hash, torrent_title = utils.chooseTorrent(torrents)
+                utils.downloadTorrent(torrent_hash, torrent_title)
+            else:
+                print("\nNo torrents found for '{} S{}E{}'".format(
+                    show.title,
+                    utils.formatNumber(show.season),
+                    utils.formatNumber(show.current_episode))
+                    )
 
     if no_shows_to_download:
         print("No new episodes out. Nothing to download.")

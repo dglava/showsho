@@ -173,21 +173,10 @@ def getTorrents(show):
         return JSON_data["torrents"][:5]
     # thrown when no torrents are found
     except urllib.error.HTTPError:
-        print("\nNo torrents found for '{} S{}E{}'".format(
-            show.title,
-            formatNumber(show.season),
-            formatNumber(show.current_episode))
-            )
         return None
 
 def chooseTorrent(torrents):
     # returns a torrent's hash and title; used for downloading
-
-    # if no torrents are passed to the function;
-    # happens when no torrents are found with getTorrents()
-    if not torrents:
-        return None, None
-
     print("Download file:")
     index = 0
     for torrent in torrents:
@@ -206,12 +195,6 @@ def chooseTorrent(torrents):
 
 def downloadTorrent(torrent_hash, torrent_title):
     # downloads and saves a torrent file
-
-    # if no torrent hash and title are passed to the function
-    # happens when no torrent is chosen with chooseTorrent()
-    if not (torrent_hash and torrent_title):
-        return
-
     source = "https://getstrike.net/torrents/api/download/"
     url = "{}{}.torrent".format(source,torrent_hash)
 
