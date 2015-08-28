@@ -43,6 +43,11 @@ Example file:
 }
 ```
 
+#### Screenshots
+![](http://s1.postimg.org/7q7bk8vzz/2015_08_28_193154_1280x800_scrot.png)
+
+![](http://s1.postimg.org/qh98ueqkf/2015_08_28_193323_1280x800_scrot.png)
+
 #### Notes
 - Depending on your timezone, it is probably recommended to add an additional day to the show's premiere/airing dates with the `-d` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
 - **Remember:** While downloading .torrent files (or using the bittorrent protocol for downloads) isn't illegal by itself, you shouldn't download unauthorized copies of media.

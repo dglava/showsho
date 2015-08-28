@@ -104,7 +104,7 @@ def downloadShows(shows):
                 torrent_hash, torrent_title = utils.chooseTorrent(torrents)
                 utils.downloadTorrent(torrent_hash, torrent_title)
             else:
-                print("\nNo torrents found for '{} S{}E{}'".format(
+                print("No torrents found for '{} S{}E{}'".format(
                     show.title,
                     utils.formatNumber(show.season),
                     utils.formatNumber(show.current_episode))
