@@ -75,20 +75,29 @@ class Show:
         elif self.premiere > TODAY:
             self.status = "soon"
 
-def showShows(shows):
-    # prints all the shows out with color-coded information
+def showShows(shows, show_only_airing):
+    """Prints all the shows out with color-coded information"""
+    # filter for the show_only_airing flag
+    valid_status = ["airing", "airing_last", "airing_new", "soon"]
+
     if len(shows) < 1:
         print("File empty, add some shows to it!")
         return
 
     # prints info about each show based on attributes; sorts by title
     for show in sorted(shows, key=lambda show: show.title):
-        print("------------")
-        print(utils.showInfo(show))
-    print("------------")
+        # prints only currently/soon to be airing shows
+        if show_only_airing:
+            if show.status in valid_status:
+                print(utils.showInfo(show))
+                print("------------")
+        # otherwise prints all shows
+        else:
+            print(utils.showInfo(show))
+            print("------------")
 
 def downloadShows(shows):
-    # downloads a torrent file for shows which have a new episode
+    """downloads a torrent file for shows which have a new episode"""
     if len(shows) < 1:
         return
 
@@ -113,7 +122,7 @@ def downloadShows(shows):
     if no_shows_to_download:
         print("No new episodes out. Nothing to download.")
 
-def main(show_file_path, download_set, delay):
+def main(show_file_path, download, delay, only_airing):
     # loads JSON data from file, creates a list with Show() objects,
     # displays and optionally downloads the shows
 
@@ -142,8 +151,8 @@ def main(show_file_path, download_set, delay):
             print("Error in the show file; check show: '{}'".format(title))
             sys.exit(2)
 
-    # displays all the shows
-    showShows(shows)
+    # prints all the shows
+    showShows(shows, only_airing)
     # if the download flag was set, downloads new episodes
-    if download_set:
+    if download:
         downloadShows(shows)

@@ -30,6 +30,11 @@ pars.add_argument(
     action="store_true",
     help="Download new episodes"
     )
+pars.add_argument(
+    "-a", "--airing",
+    action="store_true",
+    help="Show only currently/soon to be airing shows"
+    )
 pars.add_argument("-p", "--delay",
     type=int,
     metavar="DAYS",
@@ -38,6 +43,6 @@ pars.add_argument("-p", "--delay",
 args = pars.parse_args()
 
 try:
-    showsho.main(args.FILE, args.download, args.delay)
+    showsho.main(args.FILE, args.download, args.delay, args.airing)
 except KeyboardInterrupt:
     print()

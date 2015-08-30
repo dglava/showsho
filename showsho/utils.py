@@ -33,6 +33,7 @@ class Color:
     L_RED = "\033[1;31m"
 
 def colorize(text, color):
+    """Returns colorized text"""
     # doesn't output colored text on Windows(tm)(c)
     if OS == "nt":
         return text
@@ -40,28 +41,28 @@ def colorize(text, color):
         return "{}{}\033[0m".format(color, text)
 
 def getDateObject(date_string):
-    # returns a date object for the given date string
+    """Returns a date object for the given date string"""
     yyyy, mm, dd = date_string.split("-")
     date_object = datetime.date(int(yyyy), int(mm), int(dd))
     return date_object
 
 def getDay(date_object):
-    # returns the day's name of a date object: Monday, Tuesday, etc
+    """Returns the day's name of a date object: Monday, Tuesday, etc"""
     return date_object.strftime("%A")
 
 def getPrettyDate(date_object):
-    # returns a string from a date object in the format Day, MM-YYYY
-        return date_object.strftime("%a, %d %b %Y")
+    """Returns a string from a date object in the format Day, MM-YYYY"""
+    return date_object.strftime("%a, %d %b %Y")
 
 def formatNumber(number):
-    # adds a leading zero to the episode/season if necessary
+    """Adds a leading zero to the episode/season if necessary"""
     if len(str(number)) == 1:
         return "0{}".format(number)
     else:
         return str(number)
 
 def verifyDate(date):
-    # returns True if a date is in the valid format: YYYY-MM-DD
+    """Returns True if a date is in the valid format: YYYY-MM-DD"""
     try:
         getDateObject(date)
         return True
@@ -69,7 +70,7 @@ def verifyDate(date):
         return False
 
 def validateNumber(length):
-    # returns a number, with input validation for a range;
+    """Returns a number, with input validation for a range"""
     while True:
         choice = input(">")
         if choice.isdigit() and int(choice) in range(length):
@@ -77,7 +78,7 @@ def validateNumber(length):
         print("Invalid choice, must enter a number, try again.")
 
 def verifyData(season, date, episodes):
-    # checks if a show's data (from the JSON file) is valid
+    """Checks if a show's data (from the JSON file) is valid"""
     valid_season = False
     valid_date = False
     valid_episodes = False
@@ -100,7 +101,7 @@ def verifyData(season, date, episodes):
         return True
 
 def showInfo(show):
-    # returns a string with the show's details for printing
+    """Returns a string with the show's details for printing"""
     if show.status == "airing":
         info = "{}\nS{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
@@ -150,7 +151,7 @@ def showInfo(show):
     return info
 
 def getTorrents(show):
-    # returns a list with a dict for the top 5 torrents of a show
+    """Returns a list with a dict for the top 5 torrents of a show"""
     source = "https://getstrike.net/api/v2/torrents/search/?phrase="
     search = "{}%20s{}e{}".format(
         show.title.replace(" ", "%20"),
@@ -176,7 +177,7 @@ def getTorrents(show):
         return None
 
 def chooseTorrent(torrents):
-    # returns a torrent's hash and title; used for downloading
+    """Returns a torrent's hash and title; used for downloading"""
     print("Download file:")
     index = 0
     for torrent in torrents:
@@ -194,7 +195,7 @@ def chooseTorrent(torrents):
             )
 
 def downloadTorrent(torrent_hash, torrent_title):
-    # downloads and saves a torrent file
+    """Downloads and saves a torrent file"""
     source = "https://getstrike.net/torrents/api/download/"
     url = "{}{}.torrent".format(source,torrent_hash)
 
