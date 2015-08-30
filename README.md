@@ -9,10 +9,12 @@ To display the shows:
 `$ showsho shows.json`  
 To download the latest episodes use the `-d` or `--download` flag:  
 `$ showsho -d shows.json`  
+To display only currently airing and soon be be airing shows, use the `-a` flag:  
+`$ showsho -a shows.json`  
 To delay the airing dates for a couple of days, use the `-p` or `--delay` flag. See **Notes** for more info.  
-`$ showsho -p 1 shows.json`
+`$ showsho -p 1 shows.json`  
 
-The list is color coded for convenience.
+The list is color coded for convenience:
 - Shows that are airing are bright green
 - Shows with a known premiere date are green
 - Shows which have ended are red
