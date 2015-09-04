@@ -47,7 +47,8 @@ def downloadShows(shows):
             torrents = utils.getTorrents(show)
             if torrents:
                 # if the torrent list isn't empty
-                utils.downloadTorrent(utils.chooseTorrent(torrents))
+                title, torrent_hash, source = utils.chooseTorrent(torrents)
+                utils.downloadTorrent(title, torrent_hash, source)
             else:
                 print("No torrents found for '{} S{}E{}'".format(
                     show.title,

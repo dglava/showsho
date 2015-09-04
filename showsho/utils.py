@@ -297,6 +297,8 @@ def getTorrents(show):
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information"""
+    print("Download file:")
+
     index = 0
     for torr in torrents:
         print("[{}] seeds:{}\t{}".format(
