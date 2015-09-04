@@ -16,7 +16,6 @@
 
 import datetime
 import json
-import sys
 
 from showsho import utils
 

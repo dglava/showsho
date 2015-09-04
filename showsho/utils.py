@@ -18,6 +18,7 @@ import datetime
 import json
 import urllib.request
 import os
+import sys
 
 # used for urllib requests
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
