@@ -21,9 +21,9 @@ import os
 
 # used for urllib requests
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
-
 # used to disable colored text on Windows
 OS = os.name
+TODAY = datetime.date.today()
 
 class Color:
     GREEN = "\033[32m"
@@ -31,6 +31,65 @@ class Color:
     L_GREEN = "\033[1;32m"
     L_BLUE = "\033[1;34m"
     L_RED = "\033[1;31m"
+
+class Show:
+    """Class containing a show's info.
+
+    Has attributes for the show's title and current season.
+    If a premiere date and number of episodes are given, it will calculate
+    the show's status (airing, ended, etc), its latest episode and
+    the date when the show's last episode is airing. All those attributes
+    are used for printing the show's information."""
+    # used to adjust the airing dates for different timezones
+    delay = datetime.timedelta(days=0)
+
+    def __init__(self, title, season, premiere, episodes):
+        self.title = title
+        self.season = season
+        self.premiere = premiere
+        self.episodes = episodes
+
+        if self.premiere and self.episodes:
+            self.premiere = getDateObject(premiere) + Show.delay
+            self.getLastEpisodeDate()
+            self.getStatus()
+            if self.status.startswith("airing"):
+                self.getCurrentEpisode()
+        else:
+            self.status = "unknown"
+
+    def getLastEpisodeDate(self):
+        """Gets the airing date of the season's last episode"""
+        # premiere date + number of weeks/episodes the season has;
+        # need to subtract 1 from the episodes number, because it counts
+        # from the premiere up and which is already taken into account
+        self.last_episode_date = (
+            self.premiere + datetime.timedelta(weeks=self.episodes - 1)
+            )
+
+    def getCurrentEpisode(self):
+        """Calculates the current/latest episode of a show"""
+        # number of days since the premiere
+        difference = TODAY - self.premiere
+        # days // 7 days = weeks (episodes) passed,
+        # adding 1 because episodes are indexed from 1, not 0
+        self.current_episode = ((difference.days // 7) + 1)
+
+    def getStatus(self):
+        """Sets the show's status: if it's airing, ended, etc"""
+        if self.premiere <= TODAY <= self.last_episode_date:
+            if self.last_episode_date == TODAY:
+                self.status = "airing_last"
+            elif getDay(TODAY) == getDay(self.premiere):
+                self.status = "airing_new"
+            else:
+                self.status = "airing"
+
+        elif self.last_episode_date < TODAY:
+            self.status = "ended"
+
+        elif self.premiere > TODAY:
+            self.status = "soon"
 
 def colorize(text, color):
     """Returns colorized text"""
@@ -99,6 +158,36 @@ def verifyData(season, date, episodes):
 
     if valid_season and valid_date and valid_episodes:
         return True
+
+def loadShowData(path):
+    """Returns a dictionary with JSON data from a given file path"""
+    try:
+        show_file = open(path, "r")
+        json_data = json.load(show_file)
+        return json_data
+    except FileNotFoundError:
+        print("No such file: '{}'".format(path))
+        sys.exit(2)
+    except ValueError:
+        print("Bad JSON file. Check the formatting and try again.")
+        sys.exit(2)
+
+def getShows(file_path):
+    """Returns a list with Show() objects from a given dictionary"""
+    show_data = loadShowData(file_path)
+
+    shows = []
+    for title, data in show_data.items():
+        # makes sure that the show's data is valid
+        if verifyData(data[0], data[1], data[2]):
+            # if it is, creates a Show() object for each show and
+            # appends it to the shows list
+            shows.append(Show(title, data[0], data[1], data[2]))
+        else:
+            print("Error in the show file; check show: '{}'".format(title))
+            sys.exit(2)
+
+    return shows
 
 def showInfo(show):
     """Returns a string with the show's details for printing"""
@@ -209,7 +298,6 @@ def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information"""
     index = 0
     for torr in torrents:
-        # [0] RectifyS03.scene seeds: 515
         print("[{}] seeds:{}\t{}".format(
             colorize(index, Color.L_GREEN),
             torr[1],
