@@ -69,8 +69,8 @@ def verifyDate(date):
     except (TypeError, AttributeError, ValueError):
         return False
 
-def validateNumber(length):
-    """Returns a number, with input validation for a range"""
+def getChoice(length):
+    """Returns user's chosen number, with input validation for a range"""
     while True:
         choice = input(">")
         if choice.isdigit() and int(choice) in range(length):
@@ -150,54 +150,90 @@ def showInfo(show):
 
     return info
 
+def getJSON(url):
+    """Returns a dictionary with parsed JSON data from an URL"""
+    try:
+        req = urllib.request.Request(url, headers=HEADER)
+        response = urllib.request.urlopen(req).read().decode()
+        json_data = json.loads(response)
+
+        return json_data
+    except urllib.error.HTTPError:
+        # getstrike's API throws this when no torrents are found
+        return {"torrents": {}}
+
 def getTorrents(show):
-    """Returns a list with a dict for the top 5 torrents of a show"""
-    source = "https://getstrike.net/api/v2/torrents/search/?phrase="
+    """Returns a list with torrent data"""
+    # websites with torrent APIs
+    website1 = "https://torrentproject.se/?s="
+    website2 = "https://getstrike.net/api/v2/torrents/search/?phrase="
+
+    # replaces spaces with %20
     search = "{}%20s{}e{}".format(
         show.title.replace(" ", "%20"),
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
-    url = "{}{}".format(source, search)
 
-    # modified request header, because it won't work with python's UA
-    req = urllib.request.Request(url, headers=HEADER)
+    # dictionaries with all the torrent information
+    web1_data = getJSON(website1 + search + "&out=json")
+    web2_data = getJSON(website2 + search)
+    # useless key, also messes with the filtering below if not removed
+    del web1_data["total_found"]
 
-    try:
-        # TODO: find out if it's possible to get JSON without converting
-        #       it to a string first and then loading it
-        site = urllib.request.urlopen(req).read()
-        # removes the first 2 and last strings: b' and '
-        JSON_string = str(site)[2:-1]
-        JSON_data = json.loads(JSON_string)
+    # goes through both dictionaries and filters out only the info we
+    # need; appends it to our torrents list as tuples for each torrent
+    torrents = []
+    # torrent project's data
+    for i in web1_data:
+        title = web1_data[i]["title"]
+        seeds = web1_data[i]["seeds"]
+        torrent_hash = web1_data[i]["torrent_hash"]
+        source = "torrentproject"
+        torrents.append((title, seeds, torrent_hash, source))
 
-        return JSON_data["torrents"][:5]
-    # thrown when no torrents are found
-    except urllib.error.HTTPError:
-        return None
+    # getstrike's data
+    for torrent in web2_data["torrents"]:
+        title = torrent["torrent_title"]
+        seeds = torrent["seeds"]
+        torrent_hash = torrent["torrent_hash"]
+        source = "getstrike"
+        torrents.append((title, seeds, torrent_hash, source))
+
+    # sorts the results by seeders
+    torrents_sorted =sorted(torrents, key=lambda x: x[1], reverse=True)
+    # returns the top 5 results
+    return torrents_sorted[:5]
 
 def chooseTorrent(torrents):
-    """Returns a torrent's hash and title; used for downloading"""
-    print("Download file:")
+    """Prompts the user for a choice and returns torrent information"""
     index = 0
-    for torrent in torrents:
+    for torr in torrents:
+        # [0] RectifyS03.scene seeds: 515
         print("[{}] seeds:{}\t{}".format(
             colorize(index, Color.L_GREEN),
-            torrent["seeds"],
-            torrent["torrent_title"])
-            )
+            torr[1],
+            torr[0]
+            ))
         index += 1
-    choice = validateNumber(len(torrents))
 
-    chosen_torrent = torrents[choice]
-    return (chosen_torrent["torrent_hash"],
-            chosen_torrent["torrent_title"]
-            )
+    choice = getChoice(len(torrents))
 
-def downloadTorrent(torrent_hash, torrent_title):
+    # returns a (title, hash, source) tuple
+    return torrents[choice][0], torrents[choice][2], torrents[choice][3]
+
+def downloadTorrent(torrent_title, torrent_hash, source_website):
     """Downloads and saves a torrent file"""
-    source = "https://getstrike.net/torrents/api/download/"
-    url = "{}{}.torrent".format(source,torrent_hash)
+    # download URL templates for getstrike and torrentproject
+    torrentproject = "http://torrentproject.se/torrent/"
+    getstrike = "https://getstrike.net/torrents/api/download/"
+
+    if source_website == "torrentproject":
+        source = torrentproject
+    elif source_website == "getstrike":
+        source = getstrike
+
+    url = "{}{}.torrent".format(source, torrent_hash.upper())
 
     req = urllib.request.Request(url, headers=HEADER)
     torrent_data = urllib.request.urlopen(req)
@@ -205,3 +241,4 @@ def downloadTorrent(torrent_hash, torrent_title):
     torrent_file.write(torrent_data.read())
     torrent_file.close()
     print("Torrent file downloaded.")
+

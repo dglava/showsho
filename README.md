@@ -2,23 +2,16 @@
 An easy and simple way to keep track of your favourite TV shows.
 
 #### How to install
-Run `python setup.py`
+Run `$ python setup.py install`
 
 #### How to use
-To display the shows:  
-`$ showsho shows.json`  
-To download the latest episodes use the `-d` or `--download` flag:  
-`$ showsho -d shows.json`  
-To display only currently airing and soon be be airing shows, use the `-a` flag:  
-`$ showsho -a shows.json`  
-To delay the airing dates for a couple of days, use the `-p` or `--delay` flag. See **Notes** for more info.  
-`$ showsho -p 1 shows.json`  
+`$ showsho [-h] [-d] [-a] [-p DAYS] FILE`
 
-The list is color coded for convenience:
-- Shows that are airing are bright green
-- Shows with a known premiere date are green
-- Shows which have ended are red
-- Shows with unknown premiere dates are neutral
+`-d` or `--download` will download torrents for new episodes.  
+`-a` or `--airing` will only display currently airing shows.  
+`-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
+
+Torrent files are fetched via the [Strike API](https://getstrike.net/api/) and [Torrent Project](https://torrentproject.se/).
 
 #### Show file layout
 They're JSON laid out as shown below.  

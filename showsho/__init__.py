@@ -98,6 +98,7 @@ def showShows(shows, show_only_airing):
 
 def downloadShows(shows):
     """downloads a torrent file for shows which have a new episode"""
+    # TODO: move this into main(); same for showShows()
     if len(shows) < 1:
         return
 
@@ -105,13 +106,12 @@ def downloadShows(shows):
     no_shows_to_download = True
 
     for show in shows:
-        if show.status == "airing_new" or show.status == "airing_last":
+        if show.status in ["airing_new", "airing_last"]:
             no_shows_to_download = False
-
             torrents = utils.getTorrents(show)
             if torrents:
-                torrent_hash, torrent_title = utils.chooseTorrent(torrents)
-                utils.downloadTorrent(torrent_hash, torrent_title)
+                # if the torrent list isn't empty
+                utils.downloadTorrent(utils.chooseTorrent(torrents))
             else:
                 print("No torrents found for '{} S{}E{}'".format(
                     show.title,
@@ -120,7 +120,7 @@ def downloadShows(shows):
                     )
 
     if no_shows_to_download:
-        print("No new episodes out. Nothing to download.")
+        print("No new episodes out. Nothing to download")
 
 def main(show_file_path, download, delay, only_airing):
     # loads JSON data from file, creates a list with Show() objects,
@@ -130,6 +130,7 @@ def main(show_file_path, download, delay, only_airing):
     if delay:
         Show.delay = datetime.timedelta(days=delay)
 
+    # TODO: move this to a function in utils
     try:
         show_file = open(show_file_path, "r")
         JSON_data = json.load(show_file)
