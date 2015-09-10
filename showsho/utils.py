@@ -116,10 +116,7 @@ def getPrettyDate(date_object):
 
 def formatNumber(number):
     """Adds a leading zero to the episode/season if necessary"""
-    if len(str(number)) == 1:
-        return "0{}".format(number)
-    else:
-        return str(number)
+    return "{:0>2}".format(number)
 
 def verifyDate(date):
     """Returns True if a date is in the valid format: YYYY-MM-DD"""
