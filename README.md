@@ -11,7 +11,7 @@ Run `$ python setup.py install`
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
 
-Torrent files are fetched via the [Strike API](https://getstrike.net/api/) and [Torrent Project](https://torrentproject.se/).
+Torrent files are fetched via the [Torrent Project API](https://torrentproject.se/).
 
 #### Show file layout
 They're JSON laid out as shown below.  

@@ -239,21 +239,16 @@ def showInfo(show):
 
 def getJSON(url):
     """Returns a dictionary with parsed JSON data from an URL"""
-    try:
-        req = urllib.request.Request(url, headers=HEADER)
-        response = urllib.request.urlopen(req).read().decode()
-        json_data = json.loads(response)
+    req = urllib.request.Request(url, headers=HEADER)
+    response = urllib.request.urlopen(req).read().decode()
+    json_data = json.loads(response)
 
-        return json_data
-    except urllib.error.HTTPError:
-        # getstrike's API throws this when no torrents are found
-        return {"torrents": {}}
+    return json_data
 
 def getTorrents(show):
     """Returns a list with torrent data"""
     # websites with torrent APIs
     website1 = "https://torrentproject.se/?s="
-    website2 = "https://getstrike.net/api/v2/torrents/search/?phrase="
 
     # replaces spaces with %20
     search = "{}%20s{}e{}".format(
@@ -262,13 +257,12 @@ def getTorrents(show):
         formatNumber(show.current_episode)
         )
 
-    # dictionaries with all the torrent information
+    # dictionary with torrent information
     web1_data = getJSON(website1 + search + "&out=json")
-    web2_data = getJSON(website2 + search)
     # useless key, also messes with the filtering below if not removed
     del web1_data["total_found"]
 
-    # goes through both dictionaries and filters out only the info we
+    # goes through the dictionary and filters out only the info we
     # need; appends it to our torrents list as tuples for each torrent
     torrents = []
     # torrent project's data
@@ -277,14 +271,6 @@ def getTorrents(show):
         seeds = web1_data[i]["seeds"]
         torrent_hash = web1_data[i]["torrent_hash"]
         source = "torrentproject"
-        torrents.append((title, seeds, torrent_hash, source))
-
-    # getstrike's data
-    for torrent in web2_data["torrents"]:
-        title = torrent["torrent_title"]
-        seeds = torrent["seeds"]
-        torrent_hash = torrent["torrent_hash"]
-        source = "getstrike"
         torrents.append((title, seeds, torrent_hash, source))
 
     # sorts the results by seeders
@@ -312,14 +298,8 @@ def chooseTorrent(torrents):
 
 def downloadTorrent(torrent_title, torrent_hash, source_website):
     """Downloads and saves a torrent file"""
-    # download URL templates for getstrike and torrentproject
-    torrentproject = "http://torrentproject.se/torrent/"
-    getstrike = "https://getstrike.net/torrents/api/download/"
-
-    if source_website == "torrentproject":
-        source = torrentproject
-    elif source_website == "getstrike":
-        source = getstrike
+    # download URL template for torrentproject
+    source = "http://torrentproject.se/torrent/"
 
     url = "{}{}.torrent".format(source, torrent_hash.upper())
 
@@ -329,4 +309,3 @@ def downloadTorrent(torrent_title, torrent_hash, source_website):
     torrent_file.write(torrent_data.read())
     torrent_file.close()
     print("Torrent file downloaded.")
-
