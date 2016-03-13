@@ -190,7 +190,7 @@ def getShows(file_path):
 def showInfo(show):
     """Returns a string with the show's details for printing"""
     if show.status == "airing":
-        info = "{}\nS{}E{} | {}".format(
+        info = "{} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
             formatNumber(show.season),
             formatNumber(show.current_episode),
@@ -198,7 +198,7 @@ def showInfo(show):
             )
 
     elif show.status == "airing_new":
-        info = "{} {}\nS{}E{} | {}".format(
+        info = "{} {} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
             colorize("New episode!", Color.L_BLUE),
             formatNumber(show.season),
@@ -207,7 +207,7 @@ def showInfo(show):
             )
 
     elif show.status == "airing_last":
-        info = "{} {}\nS{}E{} | {}".format(
+        info = "{} {} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
             colorize("Last episode!", Color.L_RED),
             formatNumber(show.season),
@@ -216,21 +216,21 @@ def showInfo(show):
             )
 
     elif show.status == "ended":
-        info = "{}\nLast episode: S{}E{}".format(
+        info = "{} | Last episode: S{}E{}".format(
             colorize(show.title, Color.RED),
             formatNumber(show.season),
             formatNumber(show.episodes),
             )
 
     elif show.status == "soon":
-        info = "{}\nSeason {} premiere on {}".format(
+        info = "{} | Season {} premiere on {}".format(
             colorize(show.title, Color.GREEN),
             show.season,
             getPrettyDate(show.premiere)
             )
 
     elif show.status == "unknown":
-        info = "{}\nSeason {} unknown premiere date".format(
+        info = "{} | Season {} unknown premiere date".format(
             show.title,
             show.season
             )

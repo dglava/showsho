@@ -30,11 +30,9 @@ def showShows(shows, show_only_airing):
         if show_only_airing:
             if show.status in valid_status:
                 print(utils.showInfo(show))
-                print("------------")
         # otherwise prints all shows
         else:
             print(utils.showInfo(show))
-            print("------------")
 
 def downloadShows(shows):
     """downloads a torrent file for shows which have a new episode"""
