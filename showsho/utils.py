@@ -280,7 +280,7 @@ def getTorrents(show):
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information"""
-    print("Download file:")
+    print("\nDownload file:")
 
     index = 0
     for torr in torrents:
