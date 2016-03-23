@@ -39,9 +39,9 @@ Example file:
 ```
 
 #### Screenshots
-![](http://s16.postimg.org/48d252i3p/2016_03_13_10_49_52.png)
+![](http://s23.postimg.org/gdguqt997/2016_03_23_16_13_28.png)
 
-![](http://s16.postimg.org/uuu47sbol/2016_03_13_10_50_50.png)
+![](http://s23.postimg.org/l0mwskwm3/2016_03_23_16_14_51.png)
 
 #### Notes
 - Depending on your timezone, it is probably recommended to add an additional day to the show's premiere/airing dates with the `-p` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
