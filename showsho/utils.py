@@ -43,12 +43,17 @@ class Show:
     are used for printing the show's information."""
     # used to adjust the airing dates for different timezones
     delay = datetime.timedelta(days=0)
+    # used to align the shows for pretty printing
+    padding = 0
 
     def __init__(self, title, season, premiere, episodes):
         self.title = title
         self.season = season
         self.premiere = premiere
         self.episodes = episodes
+
+        if len(self.title) > Show.padding:
+            Show.padding = len(self.title)
 
         if self.premiere and self.episodes:
             self.premiere = getDateObject(premiere) + Show.delay
@@ -187,51 +192,59 @@ def getShows(file_path):
 
     return shows
 
-def showInfo(show):
+def showInfo(show, padding):
     """Returns a string with the show's details for printing"""
     if show.status == "airing":
-        info = "{} | S{}E{} | {}".format(
+        info = "{:<{}} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
+            # adding 11 to compensate for the color escape codes
+            # which Pyton "prints" too
+            padding + 11,
             formatNumber(show.season),
             formatNumber(show.current_episode),
             getDay(show.premiere)
             )
 
     elif show.status == "airing_new":
-        info = "{} {} | S{}E{} | {}".format(
+        info = "{:<{}} | S{}E{} | {} {}".format(
             colorize(show.title, Color.L_GREEN),
-            colorize("New episode!", Color.L_BLUE),
+            padding + 11,
             formatNumber(show.season),
             formatNumber(show.current_episode),
-            getDay(show.premiere)
+            getDay(show.premiere),
+            colorize("New episode!", Color.L_BLUE)
             )
 
     elif show.status == "airing_last":
-        info = "{} {} | S{}E{} | {}".format(
+        info = "{:<{}} | S{}E{} | {} {}".format(
             colorize(show.title, Color.L_GREEN),
-            colorize("Last episode!", Color.L_RED),
+            padding,
             formatNumber(show.season),
             formatNumber(show.current_episode),
-            getDay(show.premiere)
+            getDay(show.premiere),
+            colorize("Last episode!", Color.L_RED)
             )
 
     elif show.status == "ended":
-        info = "{} | Last episode: S{}E{}".format(
+        info = "{:<{}} | Last episode: S{}E{}".format(
             colorize(show.title, Color.RED),
+            padding + 9,
             formatNumber(show.season),
-            formatNumber(show.episodes),
+            formatNumber(show.episodes)
             )
 
     elif show.status == "soon":
-        info = "{} | Season {} premiere on {}".format(
+        info = "{:<{}} | Season {} premiere on {}".format(
             colorize(show.title, Color.GREEN),
+            padding + 9,
             show.season,
             getPrettyDate(show.premiere)
             )
 
     elif show.status == "unknown":
-        info = "{} | Season {} unknown premiere date".format(
+        info = "{:<{}} | Season {} unknown premiere date".format(
             show.title,
+            padding,
             show.season
             )
 

@@ -29,10 +29,10 @@ def showShows(shows, show_only_airing):
         # prints only currently/soon to be airing shows
         if show_only_airing:
             if show.status in valid_status:
-                print(utils.showInfo(show))
+                print(utils.showInfo(show, utils.Show.padding))
         # otherwise prints all shows
         else:
-            print(utils.showInfo(show))
+            print(utils.showInfo(show, utils.Show.padding))
 
 def downloadShows(shows):
     """downloads a torrent file for shows which have a new episode"""
