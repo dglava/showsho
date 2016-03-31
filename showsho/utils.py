@@ -272,6 +272,9 @@ def getTorrents(show):
 
     # dictionary with torrent information
     web1_data = getJSON(website1 + search + "&out=json")
+    # if torrentproject is in maintenence mode, do nothing
+    if web1_data == "api maintenance":
+        return
     # useless key, also messes with the filtering below if not removed
     del web1_data["total_found"]
 
