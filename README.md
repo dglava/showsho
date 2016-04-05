@@ -2,7 +2,8 @@
 An easy and simple way to keep track of your favourite TV shows.
 
 #### How to install
-Run `$ python setup.py install`
+Run `$ python setup.py install`   
+Arch users can use the included PKGBUILD
 
 #### How to use
 `$ showsho [-h] [-d] [-a] [-p DAYS] FILE`
@@ -11,7 +12,8 @@ Run `$ python setup.py install`
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
 
-Torrent files are fetched via the [Torrent Project API](https://torrentproject.se/).
+The torrent files are downloaded from [torcache.net](https://torcache.net/)
+and [torrentz.com](http://www.torrentz.com/).
 
 #### Show file layout
 They're JSON laid out as shown below.  

@@ -1,5 +1,5 @@
 # Showsho
-# Copyright (C) 2015  Dino Duratović <dinomol@mail.com>
+# Copyright (C) 2015  Dino Duratović <dinomol at mail dot com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,12 +15,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import json
 import urllib.request
 import os
 import sys
+import re
+import json
+import gzip
 
-# used for urllib requests
+# torrcache refuses a connection without this
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
 # used to disable colored text on Windows
 OS = os.name
@@ -198,7 +200,7 @@ def showInfo(show, padding):
         info = "{:<{}} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
             # adding 11 to compensate for the color escape codes
-            # which Pyton "prints" too
+            # which Python "prints" too
             padding + 11,
             formatNumber(show.season),
             formatNumber(show.current_episode),
@@ -250,49 +252,45 @@ def showInfo(show, padding):
 
     return info
 
-def getJSON(url):
-    """Returns a dictionary with parsed JSON data from an URL"""
-    req = urllib.request.Request(url, headers=HEADER)
-    response = urllib.request.urlopen(req).read().decode()
-    json_data = json.loads(response)
-
-    return json_data
-
 def getTorrents(show):
     """Returns a list with torrent data"""
-    # websites with torrent APIs
-    website1 = "https://torrentproject.se/?s="
-
-    # replaces spaces with %20
-    search = "{}%20s{}e{}".format(
-        show.title.replace(" ", "%20"),
+    # torrentz.com provides the info_hash used to download the torrent
+    # from torcache.net in downloadTorrent()
+    search_url = "http://www.torrentz.com/search?q="
+    search_query = "{}+s{}e{}".format(
+        show.title.replace(" ", "+"),
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
 
-    # dictionary with torrent information
-    web1_data = getJSON(website1 + search + "&out=json")
-    # if torrentproject is in maintenence mode, do nothing
-    if web1_data == "api maintenance":
-        return
-    # useless key, also messes with the filtering below if not removed
-    del web1_data["total_found"]
+    response = urllib.request.urlopen(search_url + search_query)
+    response_text = response.read().decode()
 
-    # goes through the dictionary and filters out only the info we
-    # need; appends it to our torrents list as tuples for each torrent
+    # filters out a raw chunk of data for each torrent
+    regex = '(?<=<dl><dt><a href="/).{40}".*(?=</span><span class="d">)'
+    raw_torrent_data = re.findall(regex, response_text)
+
+    # filters out the relevant information from the raw chunk and
+    # appends it to a list in form of a dictionary
     torrents = []
-    # torrent project's data
-    for i in web1_data:
-        title = web1_data[i]["title"]
-        seeds = web1_data[i]["seeds"]
-        torrent_hash = web1_data[i]["torrent_hash"]
-        source = "torrentproject"
-        torrents.append((title, seeds, torrent_hash, source))
+    for torrent in raw_torrent_data:
+        # first 40 chars are the hash; make it all caps
+        torrent_hash = torrent[:40].upper()
+        torrent_title_dirty = re.search("<b>.*</a>", torrent).group()
+        # removes html tags from the title
+        torrent_title = re.sub("<.{,3}>", "", torrent_title_dirty)
+        torrent_seeds_dirty = re.search("[0-9,]*$", torrent).group()
+        # remove decimal separator, to make sorting easier later
+        torrent_seeds = int(re.sub("\,", "", torrent_seeds_dirty))
 
-    # sorts the results by seeders
-    torrents_sorted =sorted(torrents, key=lambda x: x[1], reverse=True)
-    # returns the top 5 results
-    return torrents_sorted[:5]
+        torrents.append(({
+            "title": torrent_title,
+            "hash": torrent_hash,
+            "seeds": torrent_seeds
+            }))
+
+    # return only the top 5 torrents sorted by seeds
+    return sorted(torrents, key=lambda x: x["seeds"], reverse=True)[:5]
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information"""
@@ -302,26 +300,27 @@ def chooseTorrent(torrents):
     for torr in torrents:
         print("[{}] seeds:{}\t{}".format(
             colorize(index, Color.L_GREEN),
-            torr[1],
-            torr[0]
+            torr["seeds"],
+            torr["title"]
             ))
         index += 1
-
     choice = getChoice(len(torrents))
 
-    # returns a (title, hash, source) tuple
-    return torrents[choice][0], torrents[choice][2], torrents[choice][3]
+    # returns a (title, hash) tuple
+    return torrents[choice]["title"], torrents[choice]["hash"]
 
-def downloadTorrent(torrent_title, torrent_hash, source_website):
+def downloadTorrent(torrent_title, torrent_hash):
     """Downloads and saves a torrent file"""
-    # download URL template for torrentproject
-    source = "http://torrentproject.se/torrent/"
+    # torrents are downloaded from torcache.net using the info_hash
+    # from torrentz.com
+    source_url = "https://torcache.net/torrent/"
+    download_url = source_url + torrent_hash + ".torrent"
+    request = urllib.request.Request(download_url, headers=HEADER)
+    # the downloaded file is a compressed gzip file
+    torrent_data_gzip = urllib.request.urlopen(request)
+    torrent_data = gzip.open(torrent_data_gzip, "rb").read()
 
-    url = "{}{}.torrent".format(source, torrent_hash.upper())
-
-    req = urllib.request.Request(url, headers=HEADER)
-    torrent_data = urllib.request.urlopen(req)
     torrent_file = open("{}.torrent".format(torrent_title), "wb")
-    torrent_file.write(torrent_data.read())
+    torrent_file.write(torrent_data)
     torrent_file.close()
-    print("Torrent file downloaded.")
+    print("Torrent file downloaded")

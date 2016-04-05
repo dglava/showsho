@@ -1,5 +1,5 @@
 # Showsho
-# Copyright (C) 2015  Dino Duratović <dinomol@mail.com>
+# Copyright (C) 2015  Dino Duratović <dinomol at mail dot com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-import json
 
 from showsho import utils
 
@@ -45,8 +44,8 @@ def downloadShows(shows):
             torrents = utils.getTorrents(show)
             if torrents:
                 # if the torrent list isn't empty
-                title, torrent_hash, source = utils.chooseTorrent(torrents)
-                utils.downloadTorrent(title, torrent_hash, source)
+                title, torrent_hash= utils.chooseTorrent(torrents)
+                utils.downloadTorrent(title, torrent_hash)
             else:
                 print("No torrents found for '{} S{}E{}'".format(
                     show.title,
