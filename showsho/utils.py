@@ -20,7 +20,7 @@ import os
 import sys
 import re
 import json
-import gzip
+#import gzip
 
 # torrcache refuses a connection without this
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
@@ -309,18 +309,25 @@ def chooseTorrent(torrents):
     # returns a (title, hash) tuple
     return torrents[choice]["title"], torrents[choice]["hash"]
 
-def downloadTorrent(torrent_title, torrent_hash):
-    """Downloads and saves a torrent file"""
-    # torrents are downloaded from torcache.net using the info_hash
-    # from torrentz.com
-    source_url = "https://torcache.net/torrent/"
-    download_url = source_url + torrent_hash + ".torrent"
-    request = urllib.request.Request(download_url, headers=HEADER)
-    # the downloaded file is a compressed gzip file
-    torrent_data_gzip = urllib.request.urlopen(request)
-    torrent_data = gzip.open(torrent_data_gzip, "rb").read()
+# Torcache is down, keeping this in case it comes back online
+# to allow torrent file download instead of relying on magnet links
+#def downloadTorrent(torrent_title, torrent_hash):
+    #"""Downloads and saves a torrent file"""
+    ## torrents are downloaded from torcache.net using the info_hash
+    ## from torrentz.com
+    #source_url = "https://torcache.net/torrent/"
+    #download_url = source_url + torrent_hash + ".torrent"
+    #request = urllib.request.Request(download_url, headers=HEADER)
+    ## the downloaded file is a compressed gzip file
+    #torrent_data_gzip = urllib.request.urlopen(request)
+    #torrent_data = gzip.open(torrent_data_gzip, "rb").read()
 
-    torrent_file = open("{}.torrent".format(torrent_title), "wb")
-    torrent_file.write(torrent_data)
-    torrent_file.close()
-    print("Torrent file downloaded")
+    #torrent_file = open("{}.torrent".format(torrent_title), "wb")
+    #torrent_file.write(torrent_data)
+    #torrent_file.close()
+    #print("Torrent file downloaded")
+
+def printMagnetLink(torrent_hash):
+    """Displays a magnet link; can be opened with a """
+    magnet_link = "magnet:?xt=urn:btih:{}".format(torrent_hash)
+    print(magnet_link)

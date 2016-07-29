@@ -45,7 +45,9 @@ def downloadShows(shows):
             if torrents:
                 # if the torrent list isn't empty
                 title, torrent_hash= utils.chooseTorrent(torrents)
-                utils.downloadTorrent(title, torrent_hash)
+                # print only the magnet link, because Torcache is down
+                #utils.downloadTorrent(title, torrent_hash)
+                utils.printMagnetLink(torrent_hash)
             else:
                 print("No torrents found for '{} S{}E{}'".format(
                     show.title,
