@@ -8,14 +8,11 @@ Arch users can use the included PKGBUILD
 #### How to use
 `$ showsho [-h] [-d] [-a] [-p DAYS] FILE`
 
-`-d` or `--download` will print a magnet link for the torrent.  
+`-d` or `--download` will download the latest episode.  
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
 
-The torrent information (magnet links) is fetched from [torrentz.com](http://www.torrentz.com/).
-**Note:** downloading torrent files doesn't work currently, since torcache.net
-is down. As a workaround, a magnet link is being printed which can be used
-to download the torrent.
+The torrents are downloaded from [torrentproject.se](https://www.torrentproject.se/).
 
 #### Show file layout
 They're JSON laid out as shown below.  

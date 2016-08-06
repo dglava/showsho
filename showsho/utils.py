@@ -20,10 +20,7 @@ import os
 import sys
 import re
 import json
-#import gzip
 
-# torrcache refuses a connection without this
-HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:40.0)"}
 # used to disable colored text on Windows
 OS = os.name
 TODAY = datetime.date.today()
@@ -42,7 +39,9 @@ class Show:
     If a premiere date and number of episodes are given, it will calculate
     the show's status (airing, ended, etc), its latest episode and
     the date when the show's last episode is airing. All those attributes
-    are used for printing the show's information."""
+    are used for printing the show's information.
+    """
+
     # used to adjust the airing dates for different timezones
     delay = datetime.timedelta(days=0)
     # used to align the shows for pretty printing
@@ -101,6 +100,7 @@ class Show:
 
 def colorize(text, color):
     """Returns colorized text"""
+
     # doesn't output colored text on Windows(tm)(c)
     if OS == "nt":
         return text
@@ -109,6 +109,7 @@ def colorize(text, color):
 
 def getDateObject(date_string):
     """Returns a date object for the given date string"""
+
     yyyy, mm, dd = date_string.split("-")
     date_object = datetime.date(int(yyyy), int(mm), int(dd))
     return date_object
@@ -127,6 +128,7 @@ def formatNumber(number):
 
 def verifyDate(date):
     """Returns True if a date is in the valid format: YYYY-MM-DD"""
+
     try:
         getDateObject(date)
         return True
@@ -143,6 +145,7 @@ def getChoice(length):
 
 def verifyData(season, date, episodes):
     """Checks if a show's data (from the JSON file) is valid"""
+
     valid_season = False
     valid_date = False
     valid_episodes = False
@@ -166,6 +169,7 @@ def verifyData(season, date, episodes):
 
 def loadShowData(path):
     """Returns a dictionary with JSON data from a given file path"""
+
     try:
         show_file = open(path, "r")
         json_data = json.load(show_file)
@@ -179,6 +183,7 @@ def loadShowData(path):
 
 def getShows(file_path):
     """Returns a list with Show() objects from a given dictionary"""
+
     show_data = loadShowData(file_path)
 
     shows = []
@@ -196,6 +201,7 @@ def getShows(file_path):
 
 def showInfo(show, padding):
     """Returns a string with the show's details for printing"""
+
     if show.status == "airing":
         info = "{:<{}} | S{}E{} | {}".format(
             colorize(show.title, Color.L_GREEN),
@@ -253,81 +259,75 @@ def showInfo(show, padding):
     return info
 
 def getTorrents(show):
-    """Returns a list with torrent data"""
-    # torrentz.com provides the info_hash used to download the torrent
-    # from torcache.net in downloadTorrent()
-    search_url = "http://www.torrentz.com/search?q="
-    search_query = "{}+s{}e{}".format(
+    """Returns a list with torrent data tuples.
+
+    Each tuple has the following elements:
+    (show_title, number_of_seeds, torrent_hash)
+
+    The torrent info is fetched from torrentproject.se by using their API
+    See https://torrentproject.se/api
+    """
+
+    search_source = "https://torrentproject.se/?s="
+    search_filters = "&out=json&orderby=seeders"
+    # gives us the usual "showS02E05" formatted search query
+    search_show_name = "{}+s{}e{}".format(
         show.title.replace(" ", "+"),
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
+    search_query = "{}{}{}".format(
+        search_source,
+        search_show_name,
+        search_filters
+        )
+    search_response = urllib.request.urlopen(search_query)
+    search_response_string = search_response.read().decode()
+    # gets a dictionary from the JSON response
+    search_results = json.loads(search_response_string)
+    # removes useless total_found key
+    del search_results["total_found"]
 
-    response = urllib.request.urlopen(search_url + search_query)
-    response_text = response.read().decode()
-
-    # filters out a raw chunk of data for each torrent
-    regex = '(?<=<dl><dt><a href="/).{40}".*(?=</span><span class="d">)'
-    raw_torrent_data = re.findall(regex, response_text)
-
-    # filters out the relevant information from the raw chunk and
-    # appends it to a list in form of a dictionary
     torrents = []
-    for torrent in raw_torrent_data:
-        # first 40 chars are the hash; make it all caps
-        torrent_hash = torrent[:40].upper()
-        torrent_title_dirty = re.search("<b>.*</a>", torrent).group()
-        # removes html tags from the title
-        torrent_title = re.sub("<.{,3}>", "", torrent_title_dirty)
-        torrent_seeds_dirty = re.search("[0-9,]*$", torrent).group()
-        # remove decimal separator, to make sorting easier later
-        torrent_seeds = int(re.sub("\,", "", torrent_seeds_dirty))
+    # iterates through the first 5 torrents;
+    for tor in sorted(search_results, key=lambda x: int(x))[:5]:
+        torrent = (search_results.get(tor)["title"],
+            search_results.get(tor)["seeds"],
+            search_results.get(tor)["torrent_hash"]
+            )
+        torrents.append(torrent)
 
-        torrents.append(({
-            "title": torrent_title,
-            "hash": torrent_hash,
-            "seeds": torrent_seeds
-            }))
-
-    # return only the top 5 torrents sorted by seeds
-    return sorted(torrents, key=lambda x: x["seeds"], reverse=True)[:5]
+    return torrents
 
 def chooseTorrent(torrents):
-    """Prompts the user for a choice and returns torrent information"""
+    """Prompts the user for a choice and returns torrent information.
+
+    Takes a list of torrent information tuples as an argument (see getTorrents())
+    and returns a tuple with the torrent's title and hash
+    """
+
     print("\nDownload file:")
 
     index = 0
     for torr in torrents:
         print("[{}] seeds:{}\t{}".format(
             colorize(index, Color.L_GREEN),
-            torr["seeds"],
-            torr["title"]
+            torr[1],
+            torr[0]
             ))
         index += 1
     choice = getChoice(len(torrents))
 
-    # returns a (title, hash) tuple
-    return torrents[choice]["title"], torrents[choice]["hash"]
+    return torrents[choice][0], torrents[choice][2]
 
-# Torcache is down, keeping this in case it comes back online
-# to allow torrent file download instead of relying on magnet links
-#def downloadTorrent(torrent_title, torrent_hash):
-    #"""Downloads and saves a torrent file"""
-    ## torrents are downloaded from torcache.net using the info_hash
-    ## from torrentz.com
-    #source_url = "https://torcache.net/torrent/"
-    #download_url = source_url + torrent_hash + ".torrent"
-    #request = urllib.request.Request(download_url, headers=HEADER)
-    ## the downloaded file is a compressed gzip file
-    #torrent_data_gzip = urllib.request.urlopen(request)
-    #torrent_data = gzip.open(torrent_data_gzip, "rb").read()
+def downloadTorrent(torrent_title, torrent_hash):
+    """Downloads and saves a torrent file"""
 
-    #torrent_file = open("{}.torrent".format(torrent_title), "wb")
-    #torrent_file.write(torrent_data)
-    #torrent_file.close()
-    #print("Torrent file downloaded")
+    download_url_template = "https://torrentproject.se/torrent/"
+    download_url = "{}{}.torrent".format(download_url_template, torrent_hash.upper())
 
-def printMagnetLink(torrent_hash):
-    """Displays a magnet link; can be opened with a """
-    magnet_link = "magnet:?xt=urn:btih:{}".format(torrent_hash)
-    print(magnet_link)
+    torrent_data = urllib.request.urlopen(download_url).read()
+    torrent_file = open("{}.torrent".format(torrent_title), "wb")
+    torrent_file.write(torrent_data)
+    torrent_file.close()
+    print("Torrent file downloaded")
