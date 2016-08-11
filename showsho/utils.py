@@ -281,7 +281,13 @@ def getTorrents(show):
         search_show_name,
         search_filters
         )
-    search_response = urllib.request.urlopen(search_query)
+
+    try:
+        search_response = urllib.request.urlopen(search_query)
+    except urllib.error.HTTPError:
+        print("Torrent API down. Please try later.")
+        return
+
     search_response_string = search_response.read().decode()
     # gets a dictionary from the JSON response
     search_results = json.loads(search_response_string)
