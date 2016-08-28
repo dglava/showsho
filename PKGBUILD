@@ -1,5 +1,5 @@
 pkgname=showsho-git
-pkgver=r57.2fd4e37
+pkgver=r61.38891e2
 pkgrel=1
 pkgdesc="Keep track of your shows and download them easily"
 url="https://github.com/dglava/showsho"

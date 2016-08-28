@@ -8,11 +8,12 @@ Arch users can use the included PKGBUILD
 #### How to use
 `$ showsho [-h] [-d] [-a] [-p DAYS] FILE`
 
-`-d` or `--download` will download the latest episode.  
+`-d` or `--download` will download the latest episode (if airing today).  
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
 
-The torrents are downloaded from [torrentproject.se](https://www.torrentproject.se/).
+The torrents are downloaded from [torrentz2.eu](https://torrentz2.eu/) and
+[itorrent.org](http://www.itorrents.org).
 
 #### Show file layout
 They're JSON laid out as shown below.  

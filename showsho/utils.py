@@ -24,6 +24,8 @@ import json
 # used to disable colored text on Windows
 OS = os.name
 TODAY = datetime.date.today()
+# used to prevent an 403 error forbidden when parsing the search website
+HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0"}
 
 class Color:
     GREEN = "\033[32m"
@@ -259,51 +261,58 @@ def showInfo(show, padding):
     return info
 
 def getTorrents(show):
-    """Returns a list with torrent data tuples.
+    """Returns a list with torrent data tuples from a Show() object.
 
     Each tuple has the following elements:
     (show_title, number_of_seeds, torrent_hash)
 
-    The torrent info is fetched from torrentproject.se by using their API
-    See https://torrentproject.se/api
+    All data is fetched from torrentz2.eu.
     """
 
-    search_source = "https://torrentproject.se/?s="
-    search_filters = "&out=json&orderby=seeders"
-    # gives us the usual "showS02E05" formatted search query
-    search_show_name = "{}+s{}e{}".format(
+    torrent_search_website = "https://torrentz2.eu/"
+    # formatting to use in url; replacing spaces with +
+    # example: show+name+s01e01
+    show_info_formatted = "{}+s{}e{}".format(
         show.title.replace(" ", "+"),
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
-    search_query = "{}{}{}".format(
-        search_source,
-        search_show_name,
-        search_filters
+    # URL should look like www.torrentz2.eu/search?=show+s01e01
+    search_query = "{}search?f={}".format(
+        torrent_search_website,
+        show_info_formatted
         )
 
-    try:
-        search_response = urllib.request.urlopen(search_query)
-    except urllib.error.HTTPError:
-        print("Torrent API down. Please try later.")
-        return
+    # using urllib.request.Request() to change the header,
+    # otherwise it returns a 403 forbidden error with Python's header
+    request = urllib.request.Request(search_query, headers=HEADER)
+    response = urllib.request.urlopen(request)
+    response_string = response.read().decode()
 
-    search_response_string = search_response.read().decode()
-    # gets a dictionary from the JSON response
-    search_results = json.loads(search_response_string)
-    # removes useless total_found key
-    del search_results["total_found"]
+    # filters out only the relevant part of the html
+    raw_chunk = re.search(
+        "<dt><a href=.*</span></dd>",
+        response_string,
+        flags=re.S
+        )
+    raw_chunk_string = raw_chunk.group()
 
-    torrents = []
-    # iterates through the first 5 torrents;
-    for tor in sorted(search_results, key=lambda x: int(x))[:5]:
-        torrent = (search_results.get(tor)["title"],
-            search_results.get(tor)["seeds"],
-            search_results.get(tor)["torrent_hash"]
-            )
-        torrents.append(torrent)
+    # finds the titles
+    titles = re.findall("(?<=/.{40}>).*(?=</a>)", raw_chunk_string)
+    # finds the torrent hashes
+    hashes = re.findall("(?<=<a href=/).{40}", raw_chunk_string)
+    # finds the number of seeders
+    seeds = re.findall(
+        "(?<=(?:KB|MB|GB)</span><span>).*(?=</span><span>\d*|,</span></dd>)",
+        raw_chunk_string
+        )
 
-    return torrents
+    # combine it all into a (title, seeds, hash) tuple
+    torrents_zipped = zip(titles, seeds, hashes)
+    torrents = tuple(torrents_zipped)
+
+    # return only the first (top) 5 results
+    return torrents[:5]
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information.
@@ -327,12 +336,23 @@ def chooseTorrent(torrents):
     return torrents[choice][0], torrents[choice][2]
 
 def downloadTorrent(torrent_title, torrent_hash):
-    """Downloads and saves a torrent file"""
+    """Downloads and saves a torrent file
 
-    download_url_template = "https://torrentproject.se/torrent/"
-    download_url = "{}{}.torrent".format(download_url_template, torrent_hash.upper())
+    Uses itorrent.org to download a torrent file from a provided torrent hash
+    """
 
-    torrent_data = urllib.request.urlopen(download_url).read()
+    download_source = "http://itorrents.org/torrent/"
+    download_url = "{}{}.torrent".format(
+        download_source,
+        torrent_hash.upper()
+        )
+    # using urllib.request.Request() to change the header,
+    # otherwise it returns a 403 forbidden error with Python's header
+    request = urllib.request.Request(
+        download_url,
+        headers=HEADER
+        )
+    torrent_data = urllib.request.urlopen(request).read()
     torrent_file = open("{}.torrent".format(torrent_title), "wb")
     torrent_file.write(torrent_data)
     torrent_file.close()
