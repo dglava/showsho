@@ -145,6 +145,16 @@ def getChoice(length):
             return int(choice)
         print("Invalid choice, must enter a number, try again.")
 
+def stripHTML(word):
+    """Returns the string passed to it with stripped HTML tags
+
+    Only strips the <b> and </b> tags which end up in the title
+    inside getTorrents()
+    """
+    strip_first = word.replace("<b>", "")
+    strip_second = strip_first.replace("</b>", "")
+    return strip_second
+
 def verifyData(season, date, episodes):
     """Checks if a show's data (from the JSON file) is valid"""
 
@@ -266,10 +276,10 @@ def getTorrents(show):
     Each tuple has the following elements:
     (show_title, number_of_seeds, torrent_hash)
 
-    All data is fetched from torrentz2.eu.
+    All data is fetched from torrentzeu.to
     """
 
-    torrent_search_website = "https://torrentz2.eu/"
+    torrent_search_website = "https://torrentzeu.to/"
     # formatting to use in url; replacing spaces with +
     # example: show+name+s01e01
     show_info_formatted = "{}+s{}e{}".format(
@@ -277,8 +287,8 @@ def getTorrents(show):
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
-    # URL should look like www.torrentz2.eu/search?=show+s01e01
-    search_query = "{}search?f={}".format(
+    # URL should look like www.torrentzeu.to/search?q=show+s01e01
+    search_query = "{}search?q={}".format(
         torrent_search_website,
         show_info_formatted
         )
@@ -289,30 +299,41 @@ def getTorrents(show):
     response = urllib.request.urlopen(request)
     response_string = response.read().decode()
 
-    # filters out only the relevant part of the html
-    raw_chunk = re.search(
-        "<dt><a href=.*</span></dd>",
-        response_string,
-        flags=re.S
-        )
-    raw_chunk_string = raw_chunk.group()
+    # filter out the relevant part of the HTML
+    filter_regex = "<dt>.*</dl></div>"
+    filtered_response = re.search(
+         filter_regex,
+         response_string,
+         re.S
+         )
+    filtered_response_string = filtered_response.group()
 
-    # finds the titles
-    titles = re.findall("(?<=/.{40}>).*(?=</a>)", raw_chunk_string)
-    # finds the torrent hashes
-    hashes = re.findall("(?<=<a href=/).{40}", raw_chunk_string)
-    # finds the number of seeders
-    seeds = re.findall(
-        "(?<=(?:KB|MB|GB)</span><span>).*(?=</span><span>\d*|,</span></dd>)",
-        raw_chunk_string
-        )
+    hashes_regex = '(?<=<a href="/).{40}(?=">)'
+    hashes = re.findall(hashes_regex, filtered_response_string)
+
+    titles_regex = "<b>.*"
+    # still has the <b> and </b> HTML tags
+    titles_raw = re.findall(titles_regex, filtered_response_string)
+    titles = []
+    for title in titles_raw:
+        titles.append(stripHTML(title))
+
+    seeds_regex = '(?<=<span class="u">)\d*'
+    seeds = re.findall(seeds_regex, filtered_response_string)
 
     # combine it all into a (title, seeds, hash) tuple
     torrents_zipped = zip(titles, seeds, hashes)
     torrents = tuple(torrents_zipped)
+    # sort the torrents by seeds
+    # index of the seeds value in the tuple is [1]
+    sorted_torrents = sorted(
+        torrents,
+        key=lambda x: int(x[1]),
+        reverse=True
+        )
 
     # return only the first (top) 5 results
-    return torrents[:5]
+    return sorted_torrents[:5]
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information.
