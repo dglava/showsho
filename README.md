@@ -12,7 +12,7 @@ Arch users can use the included PKGBUILD
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
 
-The torrents are downloaded from [torrentz2.eu](https://torrentz2.eu/) and
+The torrents are downloaded from [btdb.in](https://btdb.in) and
 [itorrent.org](http://www.itorrents.org).
 
 #### Show file layout

@@ -276,64 +276,41 @@ def getTorrents(show):
     Each tuple has the following elements:
     (show_title, number_of_seeds, torrent_hash)
 
-    All data is fetched from torrentzeu.to
+    All data is fetched from btdb.in
     """
-
-    torrent_search_website = "https://torrentzeu.to/"
-    # formatting to use in url; replacing spaces with +
-    # example: show+name+s01e01
-    show_info_formatted = "{}+s{}e{}".format(
-        show.title.replace(" ", "+"),
+    source = "https://btdb.in/"
+    search_prefix = "q/"
+    sort_suffix = "/?sort=popular"
+    show_name_formatted = "{} s{}e{}".format(
+        show.title,
         formatNumber(show.season),
         formatNumber(show.current_episode)
         )
-    # URL should look like www.torrentzeu.to/search?q=show+s01e01
-    search_query = "{}search?q={}".format(
-        torrent_search_website,
-        show_info_formatted
+
+    search_query = "{}{}{}{}".format(
+        source,
+        search_prefix,
+        show_name_formatted,
+        sort_suffix
         )
 
-    # using urllib.request.Request() to change the header,
-    # otherwise it returns a 403 forbidden error with Python's header
     request = urllib.request.Request(search_query, headers=HEADER)
     response = urllib.request.urlopen(request)
-    response_string = response.read().decode()
+    response_html_string = response.read().decode()
 
-    # filter out the relevant part of the HTML
-    filter_regex = "<dt>.*</dl></div>"
-    filtered_response = re.search(
-         filter_regex,
-         response_string,
-         re.S
-         )
-    filtered_response_string = filtered_response.group()
+    title_regex = '(?<=\.html" title=").*(?="><span)'
+    titles = re.findall(title_regex, response_html_string)
 
-    hashes_regex = '(?<=<a href="/).{40}(?=">)'
-    hashes = re.findall(hashes_regex, filtered_response_string)
+    seeds_regex = '(?<=Popularity: <span class="item-meta-info-value">)\d*'
+    seeds = re.findall(seeds_regex, response_html_string)
 
-    titles_regex = "<b>.*"
-    # still has the <b> and </b> HTML tags
-    titles_raw = re.findall(titles_regex, filtered_response_string)
-    titles = []
-    for title in titles_raw:
-        titles.append(stripHTML(title))
+    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
+    hashes = re.findall(hash_regex, response_html_string)
 
-    seeds_regex = '(?<=<span class="u">)\d*'
-    seeds = re.findall(seeds_regex, filtered_response_string)
+    zipped = zip(titles, seeds, hashes)
+    torrents = list(zipped)
 
-    # combine it all into a (title, seeds, hash) tuple
-    torrents_zipped = zip(titles, seeds, hashes)
-    torrents = tuple(torrents_zipped)
-    # sort the torrents by seeds
-    # index of the seeds value in the tuple is [1]
-    sorted_torrents = sorted(
-        torrents,
-        key=lambda x: int(x[1]),
-        reverse=True
-        )
-
-    # return only the first (top) 5 results
-    return sorted_torrents[:5]
+    return torrents[:5]
 
 def chooseTorrent(torrents):
     """Prompts the user for a choice and returns torrent information.
