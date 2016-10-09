@@ -30,7 +30,7 @@ HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101
 class Color:
     GREEN = "\033[32m"
     RED = "\033[31m"
-    L_GREEN = "\033[1;32m"
+    ORANGE = "\033[33m"
     L_BLUE = "\033[1;34m"
     L_RED = "\033[1;31m"
 
@@ -179,6 +179,12 @@ def verifyData(season, date, episodes):
     if valid_season and valid_date and valid_episodes:
         return True
 
+def getShowData(show_name):
+    """Return a dictionary containing a show's data.
+
+    It has the following layout:
+    {"title": [season, "premiere date", number of episodes]}
+    """
 def loadShowData(path):
     """Returns a dictionary with JSON data from a given file path"""
 
@@ -216,10 +222,10 @@ def showInfo(show, padding):
 
     if show.status == "airing":
         info = "{:<{}} | S{}E{} | {}".format(
-            colorize(show.title, Color.L_GREEN),
-            # adding 11 to compensate for the color escape codes
+            colorize(show.title, Color.GREEN),
+            # adding 9 to compensate for the color escape codes
             # which Python "prints" too
-            padding + 11,
+            padding + 9,
             formatNumber(show.season),
             formatNumber(show.current_episode),
             getDay(show.premiere)
@@ -227,8 +233,8 @@ def showInfo(show, padding):
 
     elif show.status == "airing_new":
         info = "{:<{}} | S{}E{} | {} {}".format(
-            colorize(show.title, Color.L_GREEN),
-            padding + 11,
+            colorize(show.title, Color.GREEN),
+            padding + 9,
             formatNumber(show.season),
             formatNumber(show.current_episode),
             getDay(show.premiere),
@@ -237,8 +243,8 @@ def showInfo(show, padding):
 
     elif show.status == "airing_last":
         info = "{:<{}} | S{}E{} | {} {}".format(
-            colorize(show.title, Color.L_GREEN),
-            padding,
+            colorize(show.title, Color.GREEN),
+            padding + 9,
             formatNumber(show.season),
             formatNumber(show.current_episode),
             getDay(show.premiere),
@@ -255,7 +261,7 @@ def showInfo(show, padding):
 
     elif show.status == "soon":
         info = "{:<{}} | Season {} premiere on {}".format(
-            colorize(show.title, Color.GREEN),
+            colorize(show.title, Color.ORANGE),
             padding + 9,
             show.season,
             getPrettyDate(show.premiere)
