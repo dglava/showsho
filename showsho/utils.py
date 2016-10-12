@@ -330,7 +330,7 @@ def chooseTorrent(torrents):
     index = 0
     for torr in torrents:
         print("[{}] seeds:{}\t{}".format(
-            colorize(index, Color.L_GREEN),
+            colorize(index, Color.GREEN),
             torr[1],
             torr[0]
             ))
