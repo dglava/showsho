@@ -50,6 +50,31 @@ def update_shows(show_list, file_hash, cache_dir):
     if updated_list:
         utils.save_data(updated_list, file_hash, cache_dir)
 
+def download_shows(show_list):
+    """Download torrent file for episodes.
+
+    Goes though each show in the Show() object list. If a show has
+    a new episode out, it appends information about those episodes
+    in the "for_download" list.
+    For every show and its episodes in the "for_downoload" list,
+    get the torrent information and display a magnet link that
+    can be used to download the show.
+
+    Note: in the future the magnet link might be replaced by an
+    automatic download of the torrent. See: utils.py/get_torrents().
+    """
+    for_download = []
+    for show in show_list:
+        if show.status in ["new", "last"]:
+            for_download.append(show.check_episodes_download())
+
+    for show in for_download:
+        for episode in show:
+            torrents = utils.get_torrents(episode[0], episode[1], episode[2])
+            torrent_title, torrent_magnet = utils.choose_torrent(torrents)
+
+            print("\n{}".format(torrent_magnet))
+
 def main(file_path, airing, update, download, delay):
     """Runs the program in steps.
 
@@ -99,3 +124,6 @@ def main(file_path, airing, update, download, delay):
         update_shows(show_object_list, file_hash, cache_dir)
 
     print_shows(show_object_list, airing, Show.padding)
+
+    if download:
+        download_shows(show_object_list)

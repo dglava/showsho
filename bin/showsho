@@ -53,11 +53,13 @@ argument_parser.add_argument(
 
 arguments = argument_parser.parse_args()
 
-showsho.main(
-    arguments.FILE,
-    arguments.airing,
-    arguments.update,
-    arguments.download,
-    arguments.delay
-    )
-
+try:
+    showsho.main(
+        arguments.FILE,
+        arguments.airing,
+        arguments.update,
+        arguments.download,
+        arguments.delay
+        )
+except KeyboardInterrupt:
+    print("")

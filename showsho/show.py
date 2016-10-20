@@ -79,11 +79,9 @@ class Show():
             self.title,
             API_embedded
             )
-        try:
-            response = utils.get_URL_string(search_query)
+        response = utils.get_URL_string(search_query)
+        if response:
             self.info = json.loads(response)
-        except TypeError:
-            self.info = None
 
     def get_season(self):
         """Get the relevant season.
@@ -309,6 +307,40 @@ class Show():
                 "episodes": self.episodes_to_string(self.episodes)
                 }
         return data_dict
+
+    def check_episodes_download(self):
+        """Return tuple with episodes that are airing today.
+
+        The TVMaze API's "episodesbydate" returns info about which
+        episodes are airing today. Appends every episode that aired
+        to the "new_episodes" list in form of a tuple containing
+        the show's title, season and episode number.
+        If Show.delay is True, we have to pass yesterday's date to
+        the API query to get yesterday's results today.
+        """
+        new_episodes = []
+
+        if Show.delay:
+            date = TODAY - datetime.timedelta(days=1)
+        else:
+            date = TODAY
+
+        self.fetch_show_info()
+        show_id = self.info["id"]
+
+        search_query = "{}/shows/{}/episodesbydate?date={}".format(
+            API_URL,
+            show_id,
+            date.isoformat()
+            )
+        response = utils.get_URL_string(search_query)
+        info = json.loads(response)
+
+        for new_episode in info:
+            new_episodes.append(
+                (self.title, new_episode["season"], new_episode["number"])
+                )
+        return new_episodes
 
     def debug_info(self):
         template = """Title: {}

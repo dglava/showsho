@@ -20,6 +20,7 @@ import os.path
 import urllib.request
 import datetime
 import json
+import re
 
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0"}
 
@@ -124,7 +125,7 @@ def string_from_date(dateobject, delay=False):
     compensate for the added 1 day from date_from_string()).
     """
     if delay:
-        dateobject = dateobject + datetime.timedelta(days=-1)
+        dateobject = dateobject - datetime.timedelta(days=1)
         return dateobject.isoformat()
     else:
         return dateobject.isoformat()
@@ -261,19 +262,28 @@ def pretty_status(show, padding):
             "not found. Please check the show's name"
             )
 
-def getTorrents(show):
-    """Returns a list with torrent data tuples from a Show() object.
+def get_torrents(title, season, episode):
+    """Return a list with torrent data tuples.
+
+    Takes a show's name, season and episode number and looks up
+    torrents on btdb.in. Returns a tuple containing the
+    torrent's title, number of seeds and magnet link.
+
+    Note: the magnet link might be temporary, until I find a reliable
+    torrent caching service. All the ones I've tried don't cache
+    the slightly more obscure shows, so downloading the torrent file
+    won't work.
+
     Each tuple has the following elements:
-    (show_title, number_of_seeds, torrent_hash)
-    All data is fetched from btdb.in
+    (show_title, number_of_seeds, magnet_link)
     """
     source = "https://btdb.in/"
     search_prefix = "q/"
     sort_suffix = "/?sort=popular"
     show_name_formatted = "{} s{}e{}".format(
-        show.title,
-        formatNumber(show.season),
-        formatNumber(show.current_episode)
+        title,
+        format_number(season),
+        format_number(episode)
         )
 
     search_query = "{}{}{}{}".format(
@@ -293,22 +303,26 @@ def getTorrents(show):
     seeds_regex = '(?<=Popularity: <span class="item-meta-info-value">)\d*'
     seeds = re.findall(seeds_regex, response_html_string)
 
-    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
-    hashes = re.findall(hash_regex, response_html_string)
+#    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
+#    hashes = re.findall(hash_regex, response_html_string)
+    magnet_regex = '(?<=magnet" href=").*(?="\ class="magnet")'
+    magnets = re.findall(magnet_regex, response_html_string)
 
-    zipped = zip(titles, seeds, hashes)
+    zipped = zip(titles, seeds, magnets)
     torrents = list(zipped)
 
     return torrents[:5]
 
 def choose_torrent(torrents):
-    """Prompts the user for a choice and returns torrent information.
-    Takes a list of torrent information tuples as an argument (see getTorrents())
-    and returns a tuple with the torrent's title and hash
+    """Prompt the user for a choice and return torrent information.
+
+    Takes a sequence of torrent information sequences, display them
+    and prompts the user to choose one. Returns the torrent's name
+    and magnet link.
+
+    Note: it used to return the torrent's hash, see get_torrents().
     """
-
     print("\nDownload file:")
-
     index = 0
     for torr in torrents:
         print("[{}] seeds:{}\t{}".format(
@@ -318,28 +332,27 @@ def choose_torrent(torrents):
             ))
         index += 1
     choice = getChoice(len(torrents))
-
     return torrents[choice][0], torrents[choice][2]
 
-def download_torrent(torrent_title, torrent_hash):
-    """Download and save a torrent file.
-
-    Uses itorrent.org to download a torrent file from a provided
-    torrent hash.
-    """
-    download_source = "http://itorrents.org/torrent/"
-    download_url = "{}{}.torrent".format(
-        download_source,
-        torrent_hash.upper()
-        )
-    # using urllib.request.Request() to change the header,
-    # otherwise it returns a 403 forbidden error with Python's header
-    request = urllib.request.Request(
-        download_url,
-        headers=HEADER
-        )
-    torrent_data = urllib.request.urlopen(request).read()
-    torrent_file = open("{}.torrent".format(torrent_title), "wb")
-    torrent_file.write(torrent_data)
-    torrent_file.close()
-    print("Torrent file downloaded")
+#def download_torrent(torrent_title, torrent_hash):
+#    """Download and save a torrent file.
+#
+#    Not used, because currently it only prints the magnet link.
+#    See get_torrents().
+#    """
+#    download_source = "http://itorrents.org/torrent/"
+#    download_url = "{}{}.torrent".format(
+#        download_source,
+#        torrent_hash.upper()
+#        )
+#    # using urllib.request.Request() to change the header,
+#    # otherwise it returns a 403 forbidden error with Python's header
+#    request = urllib.request.Request(
+#        download_url,
+#        headers=HEADER
+#        )
+#    torrent_data = urllib.request.urlopen(request).read()
+#    torrent_file = open("{}.torrent".format(torrent_title), "wb")
+#    torrent_file.write(torrent_data)
+#    torrent_file.close()
+#    print("Torrent file downloaded")
