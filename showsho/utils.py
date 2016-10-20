@@ -21,6 +21,8 @@ import urllib.request
 import datetime
 import json
 
+HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0"}
+
 class Color:
     GREEN = "\033[32m"
     RED = "\033[31m"
@@ -85,6 +87,14 @@ def get_URL_string(url):
         return response_string
     except urllib.error.HTTPError:
         return None
+
+def getChoice(length):
+    """Return user's chosen number, with input validation for a range."""
+    while True:
+        choice = input(">")
+        if choice.isdigit() and int(choice) in range(length):
+            return int(choice)
+    print("Invalid choice, must enter a number, try again.")
 
 def date_from_string(date_string, delay=False):
     """Return a date object from the string.
@@ -244,3 +254,92 @@ def pretty_status(show, padding):
             show.last_episode,
             colorize("Last episode!", Color.L_RED)
             )
+
+    elif show.status == "Unknown":
+        return "{} - {}".format(
+            colorize(show.title, Color.L_RED),
+            "not found. Please check the show's name"
+            )
+
+def getTorrents(show):
+    """Returns a list with torrent data tuples from a Show() object.
+    Each tuple has the following elements:
+    (show_title, number_of_seeds, torrent_hash)
+    All data is fetched from btdb.in
+    """
+    source = "https://btdb.in/"
+    search_prefix = "q/"
+    sort_suffix = "/?sort=popular"
+    show_name_formatted = "{} s{}e{}".format(
+        show.title,
+        formatNumber(show.season),
+        formatNumber(show.current_episode)
+        )
+
+    search_query = "{}{}{}{}".format(
+        source,
+        search_prefix,
+        show_name_formatted,
+        sort_suffix
+        )
+
+    request = urllib.request.Request(search_query, headers=HEADER)
+    response = urllib.request.urlopen(request)
+    response_html_string = response.read().decode()
+
+    title_regex = '(?<=\.html" title=").*(?="><span)'
+    titles = re.findall(title_regex, response_html_string)
+
+    seeds_regex = '(?<=Popularity: <span class="item-meta-info-value">)\d*'
+    seeds = re.findall(seeds_regex, response_html_string)
+
+    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
+    hashes = re.findall(hash_regex, response_html_string)
+
+    zipped = zip(titles, seeds, hashes)
+    torrents = list(zipped)
+
+    return torrents[:5]
+
+def choose_torrent(torrents):
+    """Prompts the user for a choice and returns torrent information.
+    Takes a list of torrent information tuples as an argument (see getTorrents())
+    and returns a tuple with the torrent's title and hash
+    """
+
+    print("\nDownload file:")
+
+    index = 0
+    for torr in torrents:
+        print("[{}] seeds:{}\t{}".format(
+            colorize(index, Color.GREEN),
+            torr[1],
+            torr[0]
+            ))
+        index += 1
+    choice = getChoice(len(torrents))
+
+    return torrents[choice][0], torrents[choice][2]
+
+def download_torrent(torrent_title, torrent_hash):
+    """Download and save a torrent file.
+
+    Uses itorrent.org to download a torrent file from a provided
+    torrent hash.
+    """
+    download_source = "http://itorrents.org/torrent/"
+    download_url = "{}{}.torrent".format(
+        download_source,
+        torrent_hash.upper()
+        )
+    # using urllib.request.Request() to change the header,
+    # otherwise it returns a 403 forbidden error with Python's header
+    request = urllib.request.Request(
+        download_url,
+        headers=HEADER
+        )
+    torrent_data = urllib.request.urlopen(request).read()
+    torrent_file = open("{}.torrent".format(torrent_title), "wb")
+    torrent_file.write(torrent_data)
+    torrent_file.close()
+    print("Torrent file downloaded")

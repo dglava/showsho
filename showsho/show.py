@@ -79,8 +79,11 @@ class Show():
             self.title,
             API_embedded
             )
-        response = utils.get_URL_string(search_query)
-        self.info = json.loads(response)
+        try:
+            response = utils.get_URL_string(search_query)
+            self.info = json.loads(response)
+        except TypeError:
+            self.info = None
 
     def get_season(self):
         """Get the relevant season.
@@ -91,6 +94,7 @@ class Show():
         a "premiereDate". That season is the one we want and we get
         its number.
         """
+
         # filtered out list containing only the season dicts
         seasons = self.info["_embedded"]["seasons"]
         for season in reversed(seasons):
@@ -269,6 +273,8 @@ class Show():
         Runs the various methods which update the show's data.
         """
         self.fetch_show_info()
+        if not self.info:
+            return
         self.get_season()
         self.get_premiere()
         self.get_episodes_number()
@@ -279,15 +285,29 @@ class Show():
         self.get_last_episode()
 
     def dump_data(self):
-        """Return a JSON string with the show's attributes."""
-        data_dict = {
-            "title": self.title,
-            "season": self.season,
-            "premiere": utils.string_from_date(self.premiere, Show.delay),
-            "episodesNumber": self.episodes_number,
-            "end": utils.string_from_date(self.end, Show.delay),
-            "episodes": self.episodes_to_string(self.episodes)
-            }
+        """Return a JSON string with the show's attributes.
+
+        If there is no self.info, it dumps an "empty" dictionary
+        with only the show's title.
+        """
+        if self.info == None:
+            data_dict = {
+                "title": self.title,
+                "season": None,
+                "premiere": "",
+                "episodesNumber": None,
+                "end": "",
+                "episodes": {}
+                }
+        else:
+            data_dict = {
+                "title": self.title,
+                "season": self.season,
+                "premiere": utils.string_from_date(self.premiere, Show.delay),
+                "episodesNumber": self.episodes_number,
+                "end": utils.string_from_date(self.end, Show.delay),
+                "episodes": self.episodes_to_string(self.episodes)
+                }
         return data_dict
 
     def debug_info(self):

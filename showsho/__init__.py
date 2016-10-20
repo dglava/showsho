@@ -19,6 +19,37 @@ import os
 from showsho import utils
 from showsho.show import Show
 
+def print_shows(show_list, airing, padding):
+    """Print list of shows.
+
+    Goes through the list of Show() objects and prints useful
+    information. If "airing" is True, it will only print shows
+    that are airing or about to air. "Padding" is used to pad and
+    align the output.
+    """
+    for show in show_list:
+        if airing:
+            if show.status in ["airing", "new", "soon", "last", "Unknown"]:
+                print(utils.pretty_status(show, padding))
+        else:
+            print(utils.pretty_status(show, padding))
+
+def update_shows(show_list, file_hash, cache_dir):
+    """Update the show's data (attributes).
+
+    Runs the Show().update method for each show in the list, getting
+    new data. Creates additional "updated_list" which contains the
+    new data in a dictionary. That dictionary is then saved to the
+    cache file (JSON formatted).
+    """
+    updated_list = []
+    for show in show_list:
+        show.update()
+        updated_list.append(show.dump_data())
+
+    if updated_list:
+        utils.save_data(updated_list, file_hash, cache_dir)
+
 def main(file_path, airing, update, download, delay):
     """Runs the program in steps.
 
@@ -51,6 +82,7 @@ def main(file_path, airing, update, download, delay):
     # adds a delay to every date if the option is passed as an argument
     if delay:
         Show.delay = True
+
     # create a list of Show() objects
     show_object_list = []
     for show in shows:
@@ -63,20 +95,7 @@ def main(file_path, airing, update, download, delay):
             show["episodes"]
             ))
 
-    # contains updated versions of show dictionaries in case they
-    # get updated
-    updated_list = []
-    for show in show_object_list:
-        if first_run or update:
-            show.update()
-            updated_list.append(show.dump_data())
+    if first_run or update:
+        update_shows(show_object_list, file_hash, cache_dir)
 
-        if airing:
-            if show.status in ["airing", "new", "soon", "last"]:
-                print(utils.pretty_status(show, Show.padding))
-        else:
-            print(utils.pretty_status(show, Show.padding))
-
-    # if data has been updates, save it to the new cache file
-    if updated_list:
-        utils.save_data(updated_list, file_hash, cache_dir)
+    print_shows(show_object_list, airing, Show.padding)
