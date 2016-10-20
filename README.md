@@ -3,48 +3,25 @@ An easy and simple way to keep track of your favourite TV shows.
 
 #### How to install
 Run `$ python setup.py install`   
+There are no external dependencies outside of the standard Python library   
 Arch users can use the included PKGBUILD
 
 #### How to use
-`$ showsho [-h] [-d] [-a] [-p DAYS] FILE`
+`$ showsho [-h] [-d] [-a] [-p] FILE`
 
 `-d` or `--download` will download the latest episode (if airing today).  
 `-a` or `--airing` will only display currently airing shows.  
 `-p` or `--delay` adds a delay in days to the premiere date. See **Notes** for more information.  
+`FILE` should be a text file containing one show's name per line.
 
-The torrents are downloaded from [btdb.in](https://btdb.in) and
-[itorrent.org](http://www.itorrents.org).
-
-#### Show file layout
-They're JSON laid out as shown below.  
-```
-{
-"show name": [season, "date", episodes]
-}
-```
-`show name`: string with the show's name  
-`season`: integer with the show's current season  
-`date`: string with the date of the show's premiere in YYYY-MM-DD format. Can be null if unknown.  
-`episodes`: integer with the number of episodes the season has. Can be null if unknown, but only if `date` is also null. If you set this to null while date has a proper value, you'll get an error while trying to load your file.  
-
-
-Example file:  
-```
-{
-"True Detective": [2, "2015-06-22", 8],
-"Rectify": [3, "2015-07-10", 6],
-"Archer": [7, null, null],
-"Better Call Saul": [2, null, null],
-"Homeland": [5, "2015-10-05", 12],
-"It's Always Sunny in Philadelphia": [11, null, null]
-}
-```
+It uses the [TVMaze API](http://www.tvmaze.com/api) to get data about shows.
+All the torrent information is downloaded from [btdb.in](https://btdb.in).
 
 #### Screenshots
-![](http://s23.postimg.org/gdguqt997/2016_03_23_16_13_28.png)
+![](https://s22.postimg.org/h546cqe01/2016_10_20_13_27_47.png)
 
-![](http://s23.postimg.org/l0mwskwm3/2016_03_23_16_14_51.png)
+![](https://s22.postimg.org/pbw64b42p/2016_10_20_13_28_40.png)
 
 #### Notes
-- Depending on your timezone, it is probably recommended to add an additional day to the show's premiere/airing dates with the `-p` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
+- Depending on your timezone, it is probably recommended to use the `-p` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
 - **Remember:** While downloading .torrent files (or using the bittorrent protocol for downloads) isn't illegal by itself, you shouldn't download unauthorized copies of media.
