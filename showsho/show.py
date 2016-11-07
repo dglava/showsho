@@ -45,12 +45,11 @@ class Show():
     1 day, which is useful in certain timezones. It's used in all
     methods where premiere, end or other relevant dates are set.
     """
-    def __init__(self, title, season, premiere, end, episodes_number, episodes):
+    def __init__(self, title, season, premiere, end, episodes):
         self.title = title
         self.season = season
         self.premiere = utils.date_from_string(premiere, Show.delay)
         self.end = utils.date_from_string(end, Show.delay)
-        self.episodes_number = episodes_number
         self.episodes = self.episodes_to_date(episodes)
 
         self.info = None
@@ -92,8 +91,6 @@ class Show():
         a "premiereDate". That season is the one we want and we get
         its number.
         """
-
-        # filtered out list containing only the season dicts
         seasons = self.info["_embedded"]["seasons"]
         for season in reversed(seasons):
             if season["premiereDate"]:
@@ -112,22 +109,6 @@ class Show():
         """
         premiere = self.info["_embedded"]["seasons"][self.season - 1]["premiereDate"]
         self.premiere = utils.date_from_string(premiere, Show.delay)
-
-    def get_episodes_number(self):
-        """Get the number of episodes the season has.
-
-        Inside the "_embedded" data is information about the seasons.
-        We want the value of the "episodeNumber" key of the current
-        season. Since seasons are indexed by 0 in the list, we have
-        to subtract 1 from our actual season number while accessing
-        the key's value.
-        If the episode number is unknown it will return None.
-        """
-        number = self.info["_embedded"]["seasons"][self.season - 1]["episodeOrder"]
-        if number:
-            self.episodes_number = int(number)
-        else:
-            self.episodes_number = None
 
     def get_end(self):
         """Get the current season's end date.
@@ -255,12 +236,15 @@ class Show():
         """Get the last aired episode."""
         if not self.episodes:
             return
-
-        if self.end:
-            if self.end < TODAY:
-                self.last_episode = self.episodes_number
-                return
-
+        # if the show has ended, the last episode's number will be
+        # the number of total episodes (adding 1 because episodes
+        # aren't indexed by 0)
+        if self.end < TODAY:
+            self.last_episode = len(self.episodes) + 1
+            return
+        # compares today's week number to the weeknumbers in the
+        # list of episodes. the one that matches is the last aired
+        # episode
         for ep, date in self.episodes.items():
             if TODAY.isocalendar()[1] == date.isocalendar()[1]:
                 self.last_episode = ep
@@ -275,7 +259,6 @@ class Show():
             return
         self.get_season()
         self.get_premiere()
-        self.get_episodes_number()
         self.get_end()
         self.get_episodes()
         # update the status according to the new data
@@ -283,17 +266,16 @@ class Show():
         self.get_last_episode()
 
     def dump_data(self):
-        """Return a JSON string with the show's attributes.
+        """Return a dictionary with the show's data.
 
         If there is no self.info, it dumps an "empty" dictionary
         with only the show's title.
         """
-        if self.info == None:
+        if not self.info:
             data_dict = {
                 "title": self.title,
                 "season": None,
                 "premiere": "",
-                "episodesNumber": None,
                 "end": "",
                 "episodes": {}
                 }
@@ -302,7 +284,6 @@ class Show():
                 "title": self.title,
                 "season": self.season,
                 "premiere": utils.string_from_date(self.premiere, Show.delay),
-                "episodesNumber": self.episodes_number,
                 "end": utils.string_from_date(self.end, Show.delay),
                 "episodes": self.episodes_to_string(self.episodes)
                 }
@@ -340,15 +321,5 @@ class Show():
             new_episodes.append(
                 (self.title, new_episode["season"], new_episode["number"])
                 )
-        return new_episodes
 
-    def debug_info(self):
-        template = """Title: {}
-        Season: {}
-        premiere: {}
-        episode Number: {}
-        end: {}
-        episodes: {}
-        status: {}
-        last_episode: {}"""
-        return template.format(self.title, self.season, self.premiere, self.episodes_number, self.end, self.episodes, self.status, self.last_episode)
+        return new_episodes

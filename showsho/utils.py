@@ -22,6 +22,8 @@ import datetime
 import json
 import re
 
+from showsho import show
+
 HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0"}
 
 class Color:
@@ -62,11 +64,11 @@ def get_file_hash(file_path):
 
 def get_lines_from_file(file_path):
     """Return the file's content as lines contained in a list."""
-    list_ = []
-    file_ = open(file_path, "r")
-    for line in file_:
-        list_.append(line.strip())
-    return list_
+    _list = []
+    _file = open(file_path, "r")
+    for line in _file:
+        _list.append(line.strip())
+    return _list
 
 def check_cached(file_hash, cache_directory):
     """Check if cached version of file exists.
@@ -80,6 +82,49 @@ def check_cached(file_hash, cache_directory):
     else:
         return False
 
+def shows_from_cache(file_path):
+    """Return list of showsho.show.Show() objects from cache.
+
+    Gets data for shows from a cached file. Uses that data to create
+    Show() objects for each and returns a list containing a Show()
+    object for every show in the cache file.
+    """
+    file_ = open(file_path, "r")
+    json_data = json.load(file_)
+
+    shows = []
+    for s in json_data:
+        shows.append(show.Show(
+            s["title"],
+            s["season"],
+            s["premiere"],
+            s["end"],
+            s["episodes"]
+            ))
+
+    return shows
+
+def shows_from_scratch(file_path):
+    """Return a list of showsho.show.Show() objects for the first time.
+
+    Gets a list of show names from a file. Then it creates Show()
+    objects for every show in the list with no information except
+    the show's name.
+    """
+    show_names = get_lines_from_file(file_path)
+
+    shows = []
+    for s in show_names:
+        shows.append(show.Show(
+            s,
+            None,
+            "",
+            "",
+            {}
+            ))
+
+    return shows
+
 def get_URL_string(url):
     """Return a string with the content of an URL."""
     try:
@@ -89,7 +134,7 @@ def get_URL_string(url):
     except urllib.error.HTTPError:
         return None
 
-def getChoice(length):
+def get_choice(length):
     """Return user's chosen number, with input validation for a range."""
     while True:
         choice = input(">")
@@ -97,7 +142,7 @@ def getChoice(length):
             return int(choice)
     print("Invalid choice, must enter a number, try again.")
 
-def date_from_string(date_string, delay=False):
+def date_from_string(date_string, delay):
     """Return a date object from the string.
 
     The string should be specified in ISO 8601 format: YYYY-MM-DD.
@@ -118,7 +163,7 @@ def date_from_string(date_string, delay=False):
     except:
         return date_string
 
-def string_from_date(dateobject, delay=False):
+def string_from_date(dateobject, delay):
     """Return a string in ISO 8601 format from a dateobject.
 
     Opposite of date_from_string. Optionally removes 1 day (to
@@ -129,61 +174,6 @@ def string_from_date(dateobject, delay=False):
         return dateobject.isoformat()
     else:
         return dateobject.isoformat()
-
-def get_shows_list(file_path, file_hash, cache_dir):
-    """Return a list with a show's key data.
-
-    The list contains a dictionary for each show. The dictionary
-    contains data like the show's title, season premiere, etc.
-
-    Dictionary's structure:
-    {
-    "title": str,
-    "season": int,
-    "premiere": str,
-    "episodesNumber": int,
-    "end": str,
-    "episodes": {"1": "2016-06-06"}
-    }
-
-    It checks first if there's a cached file with the show's data
-    (in JSON format). If there is, it reads the data from it. If
-    there isn't, it creates an empty skeleton dictionary for
-    each show with only the "title" taken from the file passed to
-    it. Additionally it sets "first_run" to True. That variable is
-    used to signal that the show's information should be updated
-    later (see Show.update() from showsho/shows.py).
-    """
-    first_run = False
-
-    cache_dir = get_cache_dir()
-    if not os.path.exists(cache_dir):
-        os.mkdir(cache_dir)
-
-    # get hash and check if it's in the cache directory
-    file_hash = get_file_hash(file_path)
-    if check_cached(file_hash, cache_dir):
-        file_ = open("{}/{}".format(cache_dir, file_hash))
-        shows_list = json.load(file_)
-    else:
-        # if it's not, create a skeleton dictionary for every show
-        # in the list, appending it to the list of dicts
-        shows_list = []
-        list_ = get_lines_from_file(file_path)
-        for show in list_:
-            skeleton_dict = {
-                "title": show,
-                "season": None,
-                "premiere": "",
-                "end": "",
-                "episodesNumber": None,
-                "episodes": {}
-                }
-            shows_list.append(skeleton_dict)
-        # doing so means it's run for the first time
-        first_run = True
-
-    return first_run, shows_list
 
 def save_data(data, file_hash, cache_dir):
     """Save data to the cache directory.
@@ -262,6 +252,17 @@ def pretty_status(show, padding):
             "not found. Please check the show's name"
             )
 
+def check_connection():
+    """Return True if connected to the internet.
+
+    Uses Google(tm) to check for connectivity.
+    """
+    try:
+        urllib.request.urlopen("http://www.google.com")
+        return True
+    except urllib.error.URLError:
+        return False
+
 def get_torrents(title, season, episode):
     """Return a list with torrent data tuples.
 
@@ -269,13 +270,13 @@ def get_torrents(title, season, episode):
     torrents on btdb.in. Returns a tuple containing the
     torrent's title, number of seeds and magnet link.
 
+    Each tuple has the following elements:
+    (show_title, number_of_seeds, magnet_link)
+
     Note: the magnet link might be temporary, until I find a reliable
     torrent caching service. All the ones I've tried don't cache
     the slightly more obscure shows, so downloading the torrent file
     won't work.
-
-    Each tuple has the following elements:
-    (show_title, number_of_seeds, magnet_link)
     """
     source = "https://btdb.in/"
     search_prefix = "q/"
@@ -331,28 +332,6 @@ def choose_torrent(torrents):
             torr[0]
             ))
         index += 1
-    choice = getChoice(len(torrents))
+    choice = get_choice(len(torrents))
     return torrents[choice][0], torrents[choice][2]
 
-#def download_torrent(torrent_title, torrent_hash):
-#    """Download and save a torrent file.
-#
-#    Not used, because currently it only prints the magnet link.
-#    See get_torrents().
-#    """
-#    download_source = "http://itorrents.org/torrent/"
-#    download_url = "{}{}.torrent".format(
-#        download_source,
-#        torrent_hash.upper()
-#        )
-#    # using urllib.request.Request() to change the header,
-#    # otherwise it returns a 403 forbidden error with Python's header
-#    request = urllib.request.Request(
-#        download_url,
-#        headers=HEADER
-#        )
-#    torrent_data = urllib.request.urlopen(request).read()
-#    torrent_file = open("{}.torrent".format(torrent_title), "wb")
-#    torrent_file.write(torrent_data)
-#    torrent_file.close()
-#    print("Torrent file downloaded")

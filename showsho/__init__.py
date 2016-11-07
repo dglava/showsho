@@ -17,113 +17,138 @@
 import os
 
 from showsho import utils
-from showsho.show import Show
+from showsho import show
 
-def print_shows(show_list, airing, padding):
-    """Print list of shows.
+def get_shows(file_path, file_hash, cache_directory):
+    """Return a list of showsho.show.Show() objects.
 
-    Goes through the list of Show() objects and prints useful
-    information. If "airing" is True, it will only print shows
-    that are airing or about to air. "Padding" is used to pad and
-    align the output.
+    Checks if there is cached data available for the file passed to
+    showsho. If there is, it uses that data to create Show() objects.
+    Otherwise it creates them "from scratch" using only the show's
+    name.
+
+    Additionally it returns a bool depending whether it's being run
+    for the first time or not. That is useful to decide if the
+    show's information should be fetched from the internet.
     """
-    for show in show_list:
+    if utils.check_cached(file_hash, cache_directory):
+        # since there's cached data, it's not being run for the first time
+        first_run = False
+        # cached file's filepath
+        cached_file = "{}/{}".format(cache_directory, file_hash)
+        shows = utils.shows_from_cache(cached_file)
+    else:
+        # since there's no cached data, it's being run for the first time
+        first_run = True
+        shows = utils.shows_from_scratch(file_path)
+
+    return shows, first_run
+
+def print_shows(shows, airing, padding):
+    """Print information about Show() objects.
+
+    Prints the status and information for each show in the shows list.
+    If "airing" is True, it will only print shows that are airing.
+    "padding" adjusts the padding in utils.pretty_status().
+    """
+    for show in shows:
         if airing:
-            if show.status in ["airing", "new", "soon", "last", "Unknown"]:
+            if show.status in ["airing", "new", "last"]:
                 print(utils.pretty_status(show, padding))
         else:
             print(utils.pretty_status(show, padding))
 
-def update_shows(show_list, file_hash, cache_dir):
-    """Update the show's data (attributes).
+def update_shows(shows, file_hash, cache_directory):
+    """Update each show's information with data from the internet.
 
-    Runs the Show().update method for each show in the list, getting
-    new data. Creates additional "updated_list" which contains the
-    new data in a dictionary. That dictionary is then saved to the
-    cache file (JSON formatted).
+    First it checks if there's an internet connection, returns after
+    a notifaction if there isn't.
+    If there is connectivity, it updates each show by running the
+    Show().update method on every show in the list.
+    Finally it dumps the new data into the cache file (updates its
+    content).
     """
-    updated_list = []
-    for show in show_list:
-        show.update()
-        updated_list.append(show.dump_data())
+    if not utils.check_connection():
+        print("No internet connection. Cannot update shows!")
+        return
 
-    if updated_list:
-        utils.save_data(updated_list, file_hash, cache_dir)
+    for s in shows:
+        s.update()
 
-def download_shows(show_list):
-    """Download torrent file for episodes.
+    # list to hold a dictionary for every show's data
+    new_data = []
+    for s in shows:
+        # appends a dictionary with core data for the show
+        new_data.append(s.dump_data())
+    # saves it to disk, into the cache directory
+    utils.save_data(new_data, file_hash, cache_directory)
 
-    Goes though each show in the Show() object list. If a show has
-    a new episode out, it appends information about those episodes
-    in the "for_download" list.
-    For every show and its episodes in the "for_downoload" list,
-    get the torrent information and display a magnet link that
-    can be used to download the show.
+def download_shows(shows):
+    """Print a magnet link for episodes that aired today.
 
-    Note: in the future the magnet link might be replaced by an
-    automatic download of the torrent. See: utils.py/get_torrents().
+    Appends data about episodes that aired today (title, season,
+    number)  to "episodes_to_download". Then it goes through each
+    episode for each show in the list finding torrents and displaying
+    a prompt to choose one of them. Finally it prints a magnet link
+    for the chosen torrent.
+
+    Note: this used to download actual torrent files,  but I can't
+    find a reliable caching service to download them from. This might
+    change in the future.
     """
-    for_download = []
-    for show in show_list:
-        if show.status in ["new", "last"]:
-            for_download.append(show.check_episodes_download())
+    if not utils.check_connection():
+        print("No internet connection. Cannot download episodes!")
+        return
 
-    for show in for_download:
-        for episode in show:
-            torrents = utils.get_torrents(episode[0], episode[1], episode[2])
-            torrent_title, torrent_magnet = utils.choose_torrent(torrents)
+    episodes_to_download = []
+    for s in shows:
+        if s.status in ["new", "last"]:
+            episodes_to_download.append(s.check_episodes_download())
 
-            print("\n{}".format(torrent_magnet))
+    # nested loop, because episodes_to_download looks like this:
+    # [
+    #   [(show1, season, episode), (show1, season, episode)],
+    #   [(show2, season, episode)]
+    # ]
+    for show in episodes_to_download:
+        for ep in show:
+            torrents = utils.get_torrents(ep[0], ep[1], ep[2])
+            # when no torrents are found inform us about the exact episode
+            if not torrents:
+                show_info = "{} S{}E{}".format(ep[0], ep[1], ep[2])
+                print("No torrents found for {}".format(show_info))
+                return
+
+            title, magnet_link = utils.choose_torrent(torrents)
+            print("\n {}\n{}".format(
+                utils.colorize(title, utils.Color.GREEN),
+                magnet_link
+                ))
 
 def main(file_path, airing, update, download, delay):
-    """Runs the program in steps.
+    """Runs the main program.
 
-    First it sets up the cache directory which optionally already
-    contains data about the shows. Useful to speed things up and
-    to make it work offline.
-    Then it gets a list of shows, which contains dictionaries with
-    information about the show. Along the way, it additionally checks
-    if the program is being run for the first time which is used to
-    update the information later on.
-    Once the list is available, it then creates a new list which is
-    holding Show() objects. Show() objects are instantiated with
-    data from the dictionaries in the list and contain methods to
-    determine additional data about the show, as well as a method to
-    dump a new dictionary with updated show information (saving a
-    cache file).
-
-    Finally, it runs through each show object from the list and
-    displays the information. Depending on the options which are passed
-    to main, it might also update the show's information, download them
-    or only print shows that are airing.
+    Gets the file's hash and cache directory (sets it up if required).
+    Sets the delay if passed as a flag.
+    Gets a list of Show() objects. Updates them if it's run for the
+    first time or if the "update" flag is passed. Then it prints
+    information about the show and finally if the "download" flag
+    is passed, it downloads the new episodes.
     """
-    # handling of the cache directory, file hash and show list
-    cache_dir = utils.get_cache_dir()
-    if not os.path.exists(cache_dir):
-        os.mkdir(cache_dir)
     file_hash = utils.get_file_hash(file_path)
-    first_run, shows = utils.get_shows_list(file_path, file_hash, cache_dir)
+    cache_directory = utils.get_cache_dir()
+    if not os.path.exists(cache_directory):
+        os.mkdir(cache_directory)
 
-    # adds a delay to every date if the option is passed as an argument
     if delay:
-        Show.delay = True
+        show.Show.delay = True
 
-    # create a list of Show() objects
-    show_object_list = []
-    for show in shows:
-        show_object_list.append(Show(
-            show["title"],
-            show["season"],
-            show["premiere"],
-            show["end"],
-            show["episodesNumber"],
-            show["episodes"]
-            ))
+    shows, first_run = get_shows(file_path, file_hash, cache_directory)
 
-    if first_run or update:
-        update_shows(show_object_list, file_hash, cache_dir)
+    if update or first_run:
+        update_shows(shows, file_hash, cache_directory)
 
-    print_shows(show_object_list, airing, Show.padding)
+    print_shows(shows, airing, show.Show.padding)
 
     if download:
-        download_shows(show_object_list)
+        download_shows(shows)
