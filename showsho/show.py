@@ -190,6 +190,7 @@ class Show():
             # the season has ended, but not the show
             elif self.info["status"] == "To Be Determined":
                 self.status = "ended"
+                return
 
         if self.premiere:
             # if today's date is between the premiere and end date
