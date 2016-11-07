@@ -53,7 +53,7 @@ def print_shows(shows, airing, padding):
     """
     for show in shows:
         if airing:
-            if show.status in ["airing", "new", "last"]:
+            if show.status in ["airing", "soon", "new", "last"]:
                 print(utils.pretty_status(show, padding))
         else:
             print(utils.pretty_status(show, padding))
