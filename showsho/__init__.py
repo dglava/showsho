@@ -72,6 +72,7 @@ def update_shows(shows, file_hash, cache_directory):
         print("No internet connection. Cannot update shows!")
         return
 
+    print("Updating and getting data about the shows...\n")
     for s in shows:
         s.update()
 
