@@ -140,9 +140,17 @@ class Show():
         episodes = {}
         for epi in reversed(eps):
             if epi["season"] == self.season:
-                episodes[epi["number"]] = epi["airdate"]
+                # sometimes the API has incomplete data and the airdate
+                # is just an empty string. self.episodes_to_date()
+                # won't work with that, so we assign the ending date
+                # as the episode's airing date, just to have something.
+                if not epi["airdate"]:
+                    episodes[epi["number"]] = self.end
+                else:
+                    episodes[epi["number"]] = epi["airdate"]
             else:
                 break
+
         self.episodes = self.episodes_to_date(episodes)
 
     def get_status(self):
@@ -294,14 +302,13 @@ class Show():
         """Return tuple with episodes that are airing today.
 
         The TVMaze API's "episodesbydate" returns info about which
-        episodes are airing today. Appends every episode that aired
+        episodes are airing today. We append every episode that aired
         to the "new_episodes" list in form of a tuple containing
         the show's title, season and episode number.
+
         If Show.delay is True, we have to pass yesterday's date to
         the API query to get yesterday's results today.
         """
-        new_episodes = []
-
         if Show.delay:
             date = TODAY - datetime.timedelta(days=1)
         else:
@@ -318,6 +325,7 @@ class Show():
         response = utils.get_URL_string(search_query)
         info = json.loads(response)
 
+        new_episodes = []
         for new_episode in info:
             new_episodes.append(
                 (self.title, new_episode["season"], new_episode["number"])
