@@ -105,6 +105,9 @@ def download_shows(shows):
     for s in shows:
         if s.status in ["new", "last"]:
             episodes_to_download.append(s.check_episodes_download())
+    if not episodes_to_download:
+        print("No new episodes out. Nothing to download.")
+        return
 
     # nested loop, because episodes_to_download looks like this:
     # [
