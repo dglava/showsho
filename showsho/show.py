@@ -246,10 +246,9 @@ class Show():
         if not self.episodes:
             return
         # if the show has ended, the last episode's number will be
-        # the number of total episodes (adding 1 because episodes
-        # aren't indexed by 0)
+        # the number of total episodes
         if self.end < TODAY:
-            self.last_episode = len(self.episodes) + 1
+            self.last_episode = len(self.episodes)
             return
         # compares today's week number to the weeknumbers in the
         # list of episodes. the one that matches is the last aired
