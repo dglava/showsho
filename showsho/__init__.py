@@ -44,19 +44,23 @@ def get_shows(file_path, file_hash, cache_directory):
 
     return shows, first_run
 
-def print_shows(shows, airing, padding):
+def print_shows(shows, airing):
     """Print information about Show() objects.
 
     Prints the status and information for each show in the shows list.
     If "airing" is True, it will only print shows that are airing.
-    "padding" adjusts the padding in utils.pretty_status().
     """
-    for show in shows:
+    # figure out which show's title is the longest inside the list.
+    # set the class attribute "padding" to its value
+    longest_title = max([len(s.title) for s in shows])
+    show.Show.padding = longest_title
+
+    for s in shows:
         if airing:
-            if show.status in ["airing", "soon", "new", "last"]:
-                print(utils.pretty_status(show, padding))
+            if s.status in ["airing", "soon", "new", "last"]:
+                print(utils.pretty_status(s, show.Show.padding))
         else:
-            print(utils.pretty_status(show, padding))
+            print(utils.pretty_status(s, show.Show.padding))
 
 def update_shows(shows, file_hash, cache_directory):
     """Update each show's information with data from the internet.
@@ -152,7 +156,7 @@ def main(file_path, airing, update, download, delay):
     if update or first_run:
         update_shows(shows, file_hash, cache_directory)
 
-    print_shows(shows, airing, show.Show.padding)
+    print_shows(shows, airing)
 
     if download:
         download_shows(shows)
