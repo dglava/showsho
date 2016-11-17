@@ -123,7 +123,11 @@ def download_shows(shows):
             torrents = utils.get_torrents(ep[0], ep[1], ep[2])
             # when no torrents are found inform us about the exact episode
             if not torrents:
-                show_info = "{} S{}E{}".format(ep[0], ep[1], ep[2])
+                show_info = "{} S{}E{}".format(
+                    ep[0],
+                    utils.format_number(ep[1]),
+                    utils.format_number(ep[2])
+                    )
                 print("No torrents found for {}".format(show_info))
                 return
 
