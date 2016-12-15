@@ -241,8 +241,8 @@ def pretty_status(show, padding):
         return "{:<{}} | S{}E{} | {}".format(
             colorize(show.title, Color.GREEN),
             padding + 9,
-            show.season,
-            show.last_episode,
+            format_number(show.season),
+            format_number(show.last_episode),
             colorize("Last episode!", Color.L_RED)
             )
 
