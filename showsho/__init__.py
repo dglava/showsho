@@ -138,7 +138,7 @@ def update_shows(shows, file_hash, cache_directory):
 #                magnet_link
 #                ))
 
-def main(file_path, airing, update, download, delay):
+def main(file_path, airing, update, delay):
     """Runs the main program.
 
     Gets the file's hash and cache directory (sets it up if required).
