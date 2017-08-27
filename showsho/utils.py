@@ -263,75 +263,76 @@ def check_connection():
     except urllib.error.URLError:
         return False
 
-def get_torrents(title, season, episode):
-    """Return a list with torrent data tuples.
-
-    Takes a show's name, season and episode number and looks up
-    torrents on btdb.in. Returns a tuple containing the
-    torrent's title, number of seeds and magnet link.
-
-    Each tuple has the following elements:
-    (show_title, number_of_seeds, magnet_link)
-
-    Note: the magnet link might be temporary, until I find a reliable
-    torrent caching service. All the ones I've tried don't cache
-    the slightly more obscure shows, so downloading the torrent file
-    won't work.
-    """
-    source = "https://btdb.in/"
-    search_prefix = "q/"
-    sort_suffix = "/?sort=popular"
-    show_name_formatted = "{} s{}e{}".format(
-        title,
-        format_number(season),
-        format_number(episode)
-        )
-
-    search_query = "{}{}{}{}".format(
-        source,
-        search_prefix,
-        show_name_formatted,
-        sort_suffix
-        )
-
-    request = urllib.request.Request(search_query, headers=HEADER)
-    response = urllib.request.urlopen(request)
-    response_html_string = response.read().decode()
-
-    title_regex = '(?<=\.html" title=").*(?="><span)'
-    titles = re.findall(title_regex, response_html_string)
-
-    seeds_regex = '(?<=Popularity: <span class="item-meta-info-value">)\d*'
-    seeds = re.findall(seeds_regex, response_html_string)
-
-#    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
-#    hashes = re.findall(hash_regex, response_html_string)
-    magnet_regex = '(?<=magnet" href=").*(?="\ class="magnet")'
-    magnets = re.findall(magnet_regex, response_html_string)
-
-    zipped = zip(titles, seeds, magnets)
-    torrents = list(zipped)
-
-    return torrents[:5]
-
-def choose_torrent(torrents):
-    """Prompt the user for a choice and return torrent information.
-
-    Takes a sequence of torrent information sequences, display them
-    and prompts the user to choose one. Returns the torrent's name
-    and magnet link.
-
-    Note: it used to return the torrent's hash, see get_torrents().
-    """
-    print("\nDownload file:")
-    index = 0
-    for torr in torrents:
-        print("[{}] seeds:{}\t{}".format(
-            colorize(index, Color.GREEN),
-            torr[1],
-            torr[0]
-            ))
-        index += 1
-    choice = get_choice(len(torrents))
-    return torrents[choice][0], torrents[choice][2]
-
+# see __init__.py download_shows() comment
+#def get_torrents(title, season, episode):
+#    """Return a list with torrent data tuples.
+#
+#    Takes a show's name, season and episode number and looks up
+#    torrents on btdb.in. Returns a tuple containing the
+#    torrent's title, number of seeds and magnet link.
+#
+#    Each tuple has the following elements:
+#    (show_title, number_of_seeds, magnet_link)
+#
+#    Note: the magnet link might be temporary, until I find a reliable
+#    torrent caching service. All the ones I've tried don't cache
+#    the slightly more obscure shows, so downloading the torrent file
+#    won't work.
+#    """
+#    source = "https://btdb.in/"
+#    search_prefix = "q/"
+#    sort_suffix = "/?sort=popular"
+#    show_name_formatted = "{} s{}e{}".format(
+#        title,
+#        format_number(season),
+#        format_number(episode)
+#        )
+#
+#    search_query = "{}{}{}{}".format(
+#        source,
+#        search_prefix,
+#        show_name_formatted,
+#        sort_suffix
+#        )
+#
+#    request = urllib.request.Request(search_query, headers=HEADER)
+#    response = urllib.request.urlopen(request)
+#    response_html_string = response.read().decode()
+#
+#    title_regex = '(?<=\.html" title=").*(?="><span)'
+#    titles = re.findall(title_regex, response_html_string)
+#
+#    seeds_regex = '(?<=Popularity: <span class="item-meta-info-value">)\d*'
+#    seeds = re.findall(seeds_regex, response_html_string)
+#
+##    hash_regex = "(?<=magnet:\?xt=urn:btih:).*(?=&amp;dn)"
+##    hashes = re.findall(hash_regex, response_html_string)
+#    magnet_regex = '(?<=magnet" href=").*(?="\ class="magnet")'
+#    magnets = re.findall(magnet_regex, response_html_string)
+#
+#    zipped = zip(titles, seeds, magnets)
+#    torrents = list(zipped)
+#
+#    return torrents[:5]
+#
+#def choose_torrent(torrents):
+#    """Prompt the user for a choice and return torrent information.
+#
+#    Takes a sequence of torrent information sequences, display them
+#    and prompts the user to choose one. Returns the torrent's name
+#    and magnet link.
+#
+#    Note: it used to return the torrent's hash, see get_torrents().
+#    """
+#    print("\nDownload file:")
+#    index = 0
+#    for torr in torrents:
+#        print("[{}] seeds:{}\t{}".format(
+#            colorize(index, Color.GREEN),
+#            torr[1],
+#            torr[0]
+#            ))
+#        index += 1
+#    choice = get_choice(len(torrents))
+#    return torrents[choice][0], torrents[choice][2]
+#

@@ -38,12 +38,13 @@ argument_parser.add_argument(
     action="store_true",
     help="update the show file"
     )
-argument_parser.add_argument(
-    "-d",
-    "--download",
-    action="store_true",
-    help="download new episodes"
-    )
+# see __init__.py download_shows() comment
+#argument_parser.add_argument(
+#    "-d",
+#    "--download",
+#    action="store_true",
+#    help="download new episodes"
+#    )
 argument_parser.add_argument(
     "-p",
     "--delay",
@@ -58,7 +59,7 @@ try:
         arguments.FILE,
         arguments.airing,
         arguments.update,
-        arguments.download,
+#        arguments.download,
         arguments.delay
         )
 except KeyboardInterrupt:

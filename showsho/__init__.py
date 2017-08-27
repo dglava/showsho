@@ -88,54 +88,55 @@ def update_shows(shows, file_hash, cache_directory):
     # saves it to disk, into the cache directory
     utils.save_data(new_data, file_hash, cache_directory)
 
-def download_shows(shows):
-    """Print a magnet link for episodes that aired today.
-
-    Appends data about episodes that aired today (title, season,
-    number)  to "episodes_to_download". Then it goes through each
-    episode for each show in the list finding torrents and displaying
-    a prompt to choose one of them. Finally it prints a magnet link
-    for the chosen torrent.
-
-    Note: this used to download actual torrent files,  but I can't
-    find a reliable caching service to download them from. This might
-    change in the future.
-    """
-    if not utils.check_connection():
-        print("No internet connection. Cannot download episodes!")
-        return
-
-    episodes_to_download = []
-    for s in shows:
-        if s.status in ["new", "last"]:
-            episodes_to_download.append(s.check_episodes_download())
-    if not episodes_to_download:
-        print("No new episodes out. Nothing to download.")
-        return
-
-    # nested loop, because episodes_to_download looks like this:
-    # [
-    #   [(show1, season, episode), (show1, season, episode)],
-    #   [(show2, season, episode)]
-    # ]
-    for show in episodes_to_download:
-        for ep in show:
-            torrents = utils.get_torrents(ep[0], ep[1], ep[2])
-            # when no torrents are found inform us about the exact episode
-            if not torrents:
-                show_info = "{} S{}E{}".format(
-                    ep[0],
-                    utils.format_number(ep[1]),
-                    utils.format_number(ep[2])
-                    )
-                print("No torrents found for {}".format(show_info))
-                return
-
-            title, magnet_link = utils.choose_torrent(torrents)
-            print("\n {}\n{}".format(
-                utils.colorize(title, utils.Color.GREEN),
-                magnet_link
-                ))
+# disable downloading until a reliable torrent search engine is found
+#def download_shows(shows):
+#    """Print a magnet link for episodes that aired today.
+#
+#    Appends data about episodes that aired today (title, season,
+#    number)  to "episodes_to_download". Then it goes through each
+#    episode for each show in the list finding torrents and displaying
+#    a prompt to choose one of them. Finally it prints a magnet link
+#    for the chosen torrent.
+#
+#    Note: this used to download actual torrent files,  but I can't
+#    find a reliable caching service to download them from. This might
+#    change in the future.
+#    """
+#    if not utils.check_connection():
+#        print("No internet connection. Cannot download episodes!")
+#        return
+#
+#    episodes_to_download = []
+#    for s in shows:
+#        if s.status in ["new", "last"]:
+#            episodes_to_download.append(s.check_episodes_download())
+#    if not episodes_to_download:
+#        print("No new episodes out. Nothing to download.")
+#        return
+#
+#    # nested loop, because episodes_to_download looks like this:
+#    # [
+#    #   [(show1, season, episode), (show1, season, episode)],
+#    #   [(show2, season, episode)]
+#    # ]
+#    for show in episodes_to_download:
+#        for ep in show:
+#            torrents = utils.get_torrents(ep[0], ep[1], ep[2])
+#            # when no torrents are found inform us about the exact episode
+#            if not torrents:
+#                show_info = "{} S{}E{}".format(
+#                    ep[0],
+#                    utils.format_number(ep[1]),
+#                    utils.format_number(ep[2])
+#                    )
+#                print("No torrents found for {}".format(show_info))
+#                return
+#
+#            title, magnet_link = utils.choose_torrent(torrents)
+#            print("\n {}\n{}".format(
+#                utils.colorize(title, utils.Color.GREEN),
+#                magnet_link
+#                ))
 
 def main(file_path, airing, update, download, delay):
     """Runs the main program.
@@ -162,5 +163,6 @@ def main(file_path, airing, update, download, delay):
 
     print_shows(shows, airing)
 
-    if download:
-        download_shows(shows)
+# see download_shows() comment
+#    if download:
+#        download_shows(shows)
