@@ -254,6 +254,16 @@ class Show:
             if TODAY.isocalendar()[1] == date.isocalendar()[1]:
                 self.last_episode = ep
 
+        # ugly hack to fix error when an double episode aired and
+        # thje above way doesn't determine the correct last episode.
+        # this is why all of this sucks and needs to be rewritten to
+        # be simpler
+        # just die in my sleep already
+        if not self.last_episode:
+            for ep, date in self.episodes.items():
+                if TODAY.isocalendar()[1] == (date.isocalendar()[1] + 1):
+                    self.last_episode = ep
+
     def update(self):
         """Updates the show's information from the web.
 
