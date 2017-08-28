@@ -57,6 +57,7 @@ class Show:
         self.last_episode = None
         self.get_status()
         self.get_last_episode()
+        # self.debug()
 
     def fetch_show_info(self):
         """Download information about the show.
@@ -303,6 +304,16 @@ class Show:
                 "episodes": self.episodes_to_string(self.episodes)
                 }
         return data_dict
+
+    def debug(self):
+        """Print all the attributes for debugging."""
+        print("Title:\n\t{}".format(self.title))
+        print("Season:\n\t{}".format(self.season))
+        print("Premiere:\n\t{}".format(self.premiere))
+        print("End:\n\t{}".format(self.end))
+        print("Episodes:\n\t{}".format(self.episodes))
+        print("Info:\n\t{}".format(self.info))
+        print("Last episode:\n\t{}".format(self.last_episode))
 
 # see __init__.py download_shows() comment
 #    def check_episodes_download(self):
