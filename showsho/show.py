@@ -248,22 +248,14 @@ class Show:
         if self.end < TODAY:
             self.last_episode = len(self.episodes)
             return
-        # compares today's week number to the weeknumbers in the
-        # list of episodes. the one that matches is the last aired
-        # episode
+        # goes through the episodes and the first episode who air date
+        # is "older" than today's date is the last aired one.
+        # this relies on that self.episodes is ordered (in reverse)
+        # still, just die in my sleep already
         for ep, date in self.episodes.items():
-            if TODAY.isocalendar()[1] == date.isocalendar()[1]:
+            if date <= TODAY:
                 self.last_episode = ep
-
-        # ugly hack to fix error when an double episode aired and
-        # thje above way doesn't determine the correct last episode.
-        # this is why all of this sucks and needs to be rewritten to
-        # be simpler
-        # just die in my sleep already
-        if not self.last_episode:
-            for ep, date in self.episodes.items():
-                if TODAY.isocalendar()[1] == (date.isocalendar()[1] + 1):
-                    self.last_episode = ep
+                return
 
     def update(self):
         """Updates the show's information from the web.
