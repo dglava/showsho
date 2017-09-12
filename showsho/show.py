@@ -159,7 +159,6 @@ class Show:
         airing  - a season is currently airing
         soon    - a season is premiering soon
         ended   - the season has ended (no info about a new season yet)
-        done    - the show has ended
         new     - a new episode is airing today
         last    - the last episode is airing today
 
@@ -184,18 +183,6 @@ class Show:
         if self.episodes:
             if TODAY in self.episodes.values():
                 self.status = "new"
-                return
-
-        if self.info:
-            # if the show's status from the API data is "Ended" it means
-            # it has ended
-            if self.info["status"] == "Ended":
-                self.status = "done"
-                return
-            # if the show's status from the API data is "TBD" it means
-            # the season has ended, but not the show
-            elif self.info["status"] == "To Be Determined":
-                self.status = "ended"
                 return
 
         if self.premiere:

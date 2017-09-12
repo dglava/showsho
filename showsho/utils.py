@@ -28,7 +28,6 @@ HEADER = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:48.0) Gecko/20100101
 
 class Color:
     GREEN = "\033[32m"
-    RED = "\033[31m"
     ORANGE = "\033[33m"
     L_BLUE = "\033[1;34m"
     L_RED = "\033[1;31m"
@@ -216,14 +215,6 @@ def pretty_status(show, padding):
         return "{:<{}} | Last episode S{}E{}".format(
             show.title,
             padding,
-            format_number(show.season),
-            format_number(show.last_episode)
-            )
-
-    elif show.status == "done":
-        return "{:<{}} | Show has ended | Last episode S{}E{}".format(
-            colorize(show.title, Color.RED),
-            padding + 9,
             format_number(show.season),
             format_number(show.last_episode)
             )
