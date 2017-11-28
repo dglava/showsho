@@ -73,7 +73,8 @@ class Show:
         search_query = "{}{}{}{}".format(
             API_URL,
             API_endpoint,
-            self.title,
+            # replace space in name with plus sign for the URL
+            self.title.replace(" ", "+"),
             API_embedded
             )
         response = utils.get_URL_string(search_query)
