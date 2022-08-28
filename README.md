@@ -1,3 +1,9 @@
+**Note:** I am no longer using this. I have started using [Sonarr](https://github.com/Sonarr/Sonarr)
+and its companions (Radarr, Bazarr, Prowlarr) and Jellyfin for my media library.
+It might still me useful for people who want a more minimalist and simple solution.
+
+<hr>
+
 # showsho
 An easy and simple way to keep track of your favourite TV shows.
 
