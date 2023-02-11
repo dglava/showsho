@@ -1,6 +1,6 @@
 **Note:** I am no longer using this. I have started using [Sonarr](https://github.com/Sonarr/Sonarr)
-and its companions (Radarr, Bazarr, Prowlarr) and Jellyfin for my media library.
-It might still me useful for people who want a more minimalist and simple solution.
+and its companions (Radarr and Bazarr) and Jellyfin for my media library.
+It might still be useful for people who want a more minimalist and simple solution.
 
 <hr>
 
@@ -10,7 +10,7 @@ An easy and simple way to keep track of your favourite TV shows.
 #### How to install
 Run `$ python setup.py install`   
 There are no external dependencies outside of the standard Python library   
-Arch users can use the included PKGBUILD
+Arch users can use the included PKGBUILD.
 
 #### How to use
 `$ showsho [-h] [-a] [-p] FILE`
@@ -20,9 +20,6 @@ Arch users can use the included PKGBUILD
 `FILE` should be a text file containing one show's name per line.
 
 It uses the [TVMaze API](http://www.tvmaze.com/api) to get data about shows.
-
-#### Screenshots
-![](https://s22.postimg.org/h546cqe01/2016_10_20_13_27_47.png)
 
 #### Notes
 - Depending on your timezone, it is probably recommended to use the `-p` flag. For example: if you're in UTC+2 and watching a show broadcast in the US, you don't want to get notified a day before it actually airs, but the day after. Downloading torrents will also benefit from that, since they might not be instantly available on the same day (night).
