@@ -1,6 +1,6 @@
-**Note:** I am no longer using this. I have started using [Sonarr](https://github.com/Sonarr/Sonarr)
-and its companions (Radarr and Bazarr) and Jellyfin for my media library.
-It might still be useful for people who want a more minimalist and simple solution.
+**Note: I am no longer using or updating this.
+I have started using [Sonarr](https://github.com/Sonarr/Sonarr)
+and its companions (Radarr and Bazarr) and Jellyfin for my media library.**
 
 <hr>
 
